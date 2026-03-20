@@ -878,12 +878,12 @@ body.dark .view-active { background: rgba(255,75,75,0.22) !important; }
           <div class="bm-step">
             <div class="bm-num">3</div>
             <div class="bm-content">
-              <p>「コピーしました」と表示されたら、<strong>このツールで「＋ 商品を追加」→ 貼り付け</strong> でインポート完了。</p>
+              <p>アプリへ自動的に転送され、商品の情報が入力された状態で「追加確認」画面が開きます。</p>
             </div>
           </div>
         </div>
         <div class="bm-tip">
-          💡 <strong>ブックマークバーが見えない場合：</strong>Chrome は <kbd>Ctrl+Shift+B</kbd>、Safari は 表示 → ブックマークバーを表示 で表示できます。
+          💡 <strong>スマホの場合：</strong>Safariの「ブックマーク」として保存し、メルカリ商品ページでそのブックマークを呼び出すだけで登録できます。
         </div>
       </div>
 
@@ -1405,22 +1405,17 @@ const BOOKMARKLET_SRC = `(function(){
     lastRelistedAt:null,
     notes:''
   };
-  var json=JSON.stringify(d,null,2);
-  function show(ok){
-    var div=document.createElement('div');
-    div.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#FF4B4B;color:white;padding:16px 20px;border-radius:12px;font-size:14px;font-family:sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.3);min-width:240px;';
-    div.innerHTML=(ok?'<b>✅ クリップボードにコピーしました！</b>':'<b>⚠️ テキストを選択してコピーしてください</b>')
-      +'<div style="font-size:12px;opacity:.85;margin-top:6px">'+d.title.substring(0,35)+'</div>'
-      +'<div style="font-size:12px;opacity:.85">¥'+price.toLocaleString()+'</div>'
-      +'<div style="font-size:11px;opacity:.65;margin-top:8px">📋 管理ツール → 商品を追加 → 貼り付け</div>';
-    document.body.appendChild(div);
-    setTimeout(function(){if(div.parentNode)div.parentNode.removeChild(div);},4500);
-  }
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(json).then(function(){show(true);}).catch(function(){prompt('JSONをコピー:',json);show(false);});
-  }else{
-    prompt('JSONをコピー:',json);show(false);
-  }
+  var json=JSON.stringify(d);
+  var base='https://comodoidea-lab.github.io/furimora-assist/';
+  var url=base+'?import='+encodeURIComponent(json);
+  
+  // 表示フィードバック
+  var div=document.createElement('div');
+  div.style.cssText='position:fixed;top:20px;right:20px;z-index:99999;background:#FF4B4B;color:white;padding:16px 20px;border-radius:12px;font-size:14px;font-family:sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+  div.innerHTML='<b>🚀 アプリへ転送中...</b><div style="font-size:12px;opacity:.85;margin-top:4px">'+d.title.substring(0,30)+'...</div>';
+  document.body.appendChild(div);
+  
+  setTimeout(function(){ location.href=url; }, 800);
 })();`;
 
 // Set bookmarklet href
@@ -2995,25 +2990,41 @@ if (!localStorage.getItem('furimora_visited')) {
     });
   }
 
-  // ===== PWA: Share Target ハンドラ =====
-  // モバイルで「共有」ボタン → Furimora Assist を選ぶとここに届く
-  (function handleShareTarget() {
+  // ===== PWA: Share Target / URLパラメータ解析 =====
+  (function handleIncomingData() {
     const p = new URLSearchParams(location.search);
-    // メルカリの共有テキストは "商品の説明文 [URL]" の形式が多い
+    
+    // 1. ブックマークレットからの自動遷移 (?import=JSON)
+    const importData = p.get('import');
+    if (importData) {
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const area = document.getElementById('import-json');
+          if (area) {
+            area.value = importData;
+            parseImport(); // 自動解析
+            openModal('modal-import');
+            toast('📥 ブックマークレットからデータを受け取りました');
+            // URLからパラメータを除去（履歴を汚さない）
+            window.history.replaceState({}, document.title, location.pathname);
+          }
+        }, 300);
+      });
+      return;
+    }
+
+    // 2. メルカリアプリ等からの「共有」 (?text=...&url=...)
     const sharedText = p.get('text') || '';
     const sharedUrl = p.get('url') || '';
     const fullText = (sharedText + (sharedText && sharedUrl ? ' ' : '') + sharedUrl).trim();
 
-    if (fullText.includes('mercari') || fullText.includes('m123')) {
+    if (fullText.includes('mercari')) {
       window.addEventListener('load', () => {
         setTimeout(() => {
-          // URLを検索してセット
           const urlMatch = fullText.match(/https?:\/\/jp\.mercari\.com\/item\/m[^\s?]+/);
           if (urlMatch) {
-            const urlInput = document.getElementById('imp-url');
-            if (urlInput) urlInput.value = urlMatch[0];
+            document.getElementById('imp-url').value = urlMatch[0];
           }
-          // 全文を解析エリアへ
           const jsonArea = document.getElementById('import-json');
           if (jsonArea) jsonArea.value = fullText;
           
