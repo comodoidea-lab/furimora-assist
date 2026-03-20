@@ -941,13 +941,16 @@ body.dark .view-active { background: rgba(255,75,75,0.22) !important; }
     </div>
     <div class="modal-body">
       <p style="font-size:13px;margin-bottom:14px;color:var(--text-muted);">
-        ブックマークレットでコピーしたJSONをここに貼り付けるか、手動で入力してください。
+        アプリの「共有」テキストや、ブックマークレットのJSONを貼り付けてください。AIが項目を自動抽出します。
       </p>
-      <!-- JSON paste -->
+      <!-- JSON/Text paste -->
       <div class="form-group">
-        <div class="form-label">📋 JSONを貼り付け（ブックマークレット使用時）</div>
-        <textarea class="import-area" id="import-json" placeholder='{"itemId":"m12345678","title":"商品名", ...}'></textarea>
-        <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="parseImport()">🔍 JSONを解析して自動入力</button>
+        <div class="form-label">📋 商品データ or 説明文貼り付け</div>
+        <textarea class="import-area" id="import-json" placeholder='ブックマークレットのJSON または 商品説明文を貼り付け'></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn-ghost btn-sm" onclick="parseImport()">🔍 JSON解析</button>
+          <button class="btn btn-primary btn-sm" id="ai-import-btn" onclick="aiParseImport()">🤖 AIで解析(Gemini)</button>
+        </div>
       </div>
       <hr class="divider">
       <!-- Manual form -->
@@ -2024,7 +2027,106 @@ function parseImport() {
     // Store raw data for later
     document.getElementById('import-json').dataset.parsed = raw;
   } catch (e) {
-    toast('⚠ JSONの形式が正しくありません');
+    if (raw.includes('mercari') || raw.length > 50) {
+      if (confirm('JSON形式ではありません。AI（Gemini）で解析を試みますか？')) {
+        aiParseImport();
+      }
+    } else {
+      toast('⚠ JSONの形式が正しくありません');
+    }
+  }
+}
+
+/**
+ * Gemini AIを使って生のテキストから商品情報を抽出
+ */
+async function aiParseImport() {
+  const rawText = document.getElementById('import-json').value.trim();
+  if (!rawText) { toast('⚠ テキストを入力してください'); return; }
+  
+  const apiKey = getGeminiKey();
+  if (!apiKey) {
+    toast('⚠ APIキー未設定。⚙設定から登録してください');
+    openModal('modal-settings');
+    return;
+  }
+
+  const btn = document.getElementById('ai-import-btn');
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ai-spinner"></span> 解析中...';
+
+  const prompt = `
+以下のメルカリの商品情報を解析し、指定のJSONフォーマットで出力してください。
+不明な項目は空文字にしてください。タイトルの整形（不要な記号の削除など）も行ってください。
+
+【商品情報】
+${rawText}
+
+【出力フォーマット】
+{
+  "title": "（商品名）",
+  "currentPrice": (数値。カンマ無しの半角数字),
+  "description": "（説明文の要約または全文）",
+  "category": "（カテゴリ）",
+  "condition": "（新品・未使用 | 未使用に近い | 目立った傷や汚れなし | やや傷や汚れあり | 傷や汚れあり | 全体的に状態が悪い のいずれか）",
+  "shippingMethod": "（配送方法：らくらくメルカリ便、ゆうゆうメルカリ便など）",
+  "shippingFrom": "（発送元の地域：東京都、大阪府など）"
+}
+JSONのみを出力してください。`;
+
+  const model = getGeminiModel();
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+        })
+      }
+    );
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err?.error?.message || 'HTTP ' + resp.status);
+    }
+
+    const data = await resp.json();
+    let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!text) throw new Error('AIからの応答がありません');
+
+    // JSON部分のみ抽出
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('有効なJSONが見つかりませんでした');
+    
+    const d = JSON.parse(jsonMatch[0]);
+    if (d.title)         document.getElementById('imp-title').value = d.title;
+    if (d.currentPrice)  document.getElementById('imp-price').value = d.currentPrice;
+    if (d.description)   document.getElementById('imp-desc').value = d.description;
+    if (d.category)      document.getElementById('imp-cat').value = d.category;
+    if (d.condition)     document.getElementById('imp-cond').value = d.condition;
+    if (d.shippingMethod) document.getElementById('imp-ship').value = d.shippingMethod;
+    if (d.shippingFrom)   document.getElementById('imp-from').value = d.shippingFrom;
+
+    // URLがテキスト内にあれば抽出してセット
+    const urlMatch = rawText.match(/https?:\/\/jp\.mercari\.com\/item\/m[^\s]+/);
+    if (urlMatch && !document.getElementById('imp-url').value) {
+      document.getElementById('imp-url').value = urlMatch[0];
+    } else if (d.url) {
+      document.getElementById('imp-url').value = d.url;
+    }
+
+    document.getElementById('import-json').dataset.parsed = JSON.stringify(d);
+    toast('✅ AIによる自動入力が完了しました');
+  } catch (e) {
+    console.error(e);
+    toast('⚠ AI解析に失敗しました: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
   }
 }
 
@@ -2897,16 +2999,27 @@ if (!localStorage.getItem('furimora_visited')) {
   // モバイルで「共有」ボタン → Furimora Assist を選ぶとここに届く
   (function handleShareTarget() {
     const p = new URLSearchParams(location.search);
-    const sharedUrl = p.get('url') || p.get('text') || '';
-    const sharedTitle = p.get('title') || '';
-    if (sharedUrl && sharedUrl.includes('mercari')) {
+    // メルカリの共有テキストは "商品の説明文 [URL]" の形式が多い
+    const sharedText = p.get('text') || '';
+    const sharedUrl = p.get('url') || '';
+    const fullText = (sharedText + (sharedText && sharedUrl ? ' ' : '') + sharedUrl).trim();
+
+    if (fullText.includes('mercari') || fullText.includes('m123')) {
       window.addEventListener('load', () => {
         setTimeout(() => {
-          const input = document.getElementById('import-input');
-          if (input) input.value = sharedUrl;
+          // URLを検索してセット
+          const urlMatch = fullText.match(/https?:\/\/jp\.mercari\.com\/item\/m[^\s?]+/);
+          if (urlMatch) {
+            const urlInput = document.getElementById('imp-url');
+            if (urlInput) urlInput.value = urlMatch[0];
+          }
+          // 全文を解析エリアへ
+          const jsonArea = document.getElementById('import-json');
+          if (jsonArea) jsonArea.value = fullText;
+          
           openModal('modal-import');
-          toast('📲 共有されたURLを受け取りました');
-        }, 300);
+          toast('📲 共有された情報を受け取りました');
+        }, 500);
       });
     }
   })();
