@@ -846,19 +846,13 @@ tailwind.config = {
           <div class="bg-surface-container rounded-xl px-4 py-3 space-y-2">
             <p class="text-[11px] text-on-surface-variant">① 下のコードをコピー</p>
             <div class="flex items-center gap-2">
-              <code id="bookmarklet-code" class="flex-1 text-[10px] bg-surface-container-high rounded-lg px-3 py-2 break-all text-on-surface font-mono select-all">javascript:location.href='https://furimora-assist.vercel.app?mercari_url='+encodeURIComponent(location.href)</code>
+              <code id="bookmarklet-code" class="flex-1 text-[10px] bg-surface-container-high rounded-lg px-3 py-2 break-all text-on-surface font-mono select-all">javascript:(function(){function extract(){const idMatch=window.location.pathname.match(/\/item\/(m\w+)/);const itemId=idMatch?idMatch[1]:null;let data={};const ndEl=document.getElementById('__NEXT_DATA__');if(ndEl){try{const nd=JSON.parse(ndEl.textContent);const item=nd?.props?.pageProps?.item||nd?.props?.pageProps?.itemResponse?.item||nd?.props?.pageProps?.data?.item;if(item){data={title:item.name||item.title,price:item.price,description:item.description,images:(item.photos||[]).map(p=>(p.imageUrl||p.url||p).split('?')[0])}}}catch(e){}}if(!data.title){data={title:document.querySelector('h1[data-testid="name"]')?.textContent||document.title,price:document.querySelector('[data-testid="price"]')?.textContent.replace(/[^\d]/g,''),description:document.querySelector('[data-testid="description"]')?.textContent,images:Array.from(new Set([...document.querySelectorAll('img')].map(img=>img.src).filter(src=>src.includes('mercdn.net')&&src.includes(itemId)))).map(s=>s.replace('/thumb/','/orig/'))}}const encoded=btoa(encodeURIComponent(JSON.stringify(data)).replace(/%([0-9A-F]{2})/g,(m,p)=>String.fromCharCode('0x'+p)));window.location.href='https://furimora-assist.vercel.app/?clone_data='+encodeURIComponent(encoded)}extract()})();</code>
               <button onclick="copyBookmarklet()" class="shrink-0 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">コピー</button>
             </div>
             <p class="text-[11px] text-on-surface-variant">② このページをSafariでブックマーク登録</p>
             <p class="text-[11px] text-on-surface-variant">③ ブックマーク編集 → URL欄を全選択して削除 → 貼り付け</p>
             <p class="text-[11px] font-bold text-error">⚠️ 「JavaScript」と大文字にならないよう注意。なった場合は手動で「j」を小文字に修正</p>
             <p class="text-[11px] text-on-surface-variant">④ メルカリ商品ページでブックマークをタップ → 自動でクローン取得</p>
-            <p class="text-[11px] font-bold text-on-surface mt-2">高情報版ブックマークレット（価格・カテゴリ・状態・配送を __NEXT_DATA__ から取得）</p>
-            <p class="text-[11px] text-on-surface-variant">上記と併せて使う場合はこちらのみ登録でOK。アプリ側でも API で不足分を補います。</p>
-            <div class="flex items-center gap-2">
-              <code id="bookmarklet-code-full" class="flex-1 text-[10px] bg-surface-container-high rounded-lg px-3 py-2 break-all text-on-surface font-mono select-all max-h-32 overflow-y-auto"></code>
-              <button type="button" onclick="copyBookmarkletFull()" class="shrink-0 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">コピー</button>
-            </div>
           </div>
         </div>
 
@@ -2539,16 +2533,8 @@ function copyToClipboard(msg) {
 // ── PWA ──
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pwaPrompt = e; });
 
-/** メルカリ商品ページ用: 指定の高情報ブックマークレット（clone_data に category / condition / shipping* を含む） */
-const MERCARI_CLONE_BOOKMARKLET_FULL = `javascript:(function(){function extract(){const idMatch=window.location.pathname.match(/\\/item\\/(m\\w+)/);const itemId=idMatch?idMatch[1]:null;let data={itemId,url:window.location.href};const ndEl=document.getElementById('__NEXT_DATA__');if(ndEl){try{const nd=JSON.parse(ndEl.textContent);const item=nd?.props?.pageProps?.item||nd?.props?.pageProps?.itemResponse?.item||nd?.props?.pageProps?.data?.item;if(item){data.title=item.name||item.title;data.price=item.price;data.description=item.description;data.images=(item.photos||[]).map(p=>(p.imageUrl||p.url||p).split('?')[0]);data.category=(item.categories||[]).map(c=>c.name).join(' > ');data.condition=item.itemCondition?.name||'';data.shippingPayer=item.shippingPayer?.name||'';data.shippingMethod=item.shippingMethod?.name||'';data.shippingFrom=item.shippingFromArea?.name||'';data.shippingDays=item.shippingDuration?.name||''}}catch(e){}}if(!data.title)data.title=document.querySelector('h1[data-testid="name"]')?.textContent||document.title.replace(/\\s*[-\\u2013]\\s*メルカリ.*$/,'');if(!data.price||data.price===0){const pEl=document.querySelector('[data-testid="price"]')||document.querySelector('[class*="merPrice"]');data.price=pEl?parseInt(pEl.textContent.replace(/[^\\d]/g,'')):0}if(!data.description)data.description=document.querySelector('[data-testid="description"]')?.textContent;if(!data.images||data.images.length===0){data.images=Array.from(new Set([...document.querySelectorAll('img')].map(img=>img.src).filter(src=>src&&itemId&&src.includes('mercdn.net')&&src.includes(itemId)))).map(s=>s.replace('/thumb/','/orig/'))}const labels={'カテゴリー':'category','商品の状態':'condition','配送料の負担':'shippingPayer','配送の方法':'shippingMethod','発送元の地域':'shippingFrom','発送までの日数':'shippingDays'};if(!data.condition){document.querySelectorAll('tr, dl, div[class*="row"]').forEach(row=>{const text=row.innerText;for(const [label,key] of Object.entries(labels)){if(text.includes(label)&&!data[key]){data[key]=text.replace(label,'').trim().split('\\n')[0]}}})}const jsonStr=JSON.stringify(data);const encoded=btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g,(match,p1)=>String.fromCharCode('0x'+p1)));window.location.href='https://furimora-assist.vercel.app/?clone_data='+encodeURIComponent(encoded)}extract()})();`;
-
 function copyBookmarklet() {
   const code = document.getElementById('bookmarklet-code')?.textContent || '';
-  navigator.clipboard.writeText(code).then(() => showToast('コピーしました')).catch(() => showToast('コピーに失敗しました'));
-}
-
-function copyBookmarkletFull() {
-  const code = MERCARI_CLONE_BOOKMARKLET_FULL || '';
   navigator.clipboard.writeText(code).then(() => showToast('コピーしました')).catch(() => showToast('コピーに失敗しました'));
 }
 
@@ -2563,8 +2549,6 @@ function installPWA() {
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
-  const bmf = document.getElementById('bookmarklet-code-full');
-  if (bmf && typeof MERCARI_CLONE_BOOKMARKLET_FULL !== 'undefined') bmf.textContent = MERCARI_CLONE_BOOKMARKLET_FULL;
   loadStorageData();
   loadStats();
   renderAlerts();
