@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Noto+Sans+JP:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#f0f1f2",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary": "#ffffff",
+              "background": "#f8f9fa",
+              "tertiary-fixed-dim": "#75d4ec",
+              "surface": "#f8f9fa",
+              "on-error": "#ffffff",
+              "secondary-container": "#ff7b76",
+              "secondary-fixed": "#ffdad7",
+              "error": "#ba1a1a",
+              "surface-container-highest": "#e1e3e4",
+              "on-surface-variant": "#5c403e",
+              "on-secondary": "#ffffff",
+              "surface-tint": "#bf0421",
+              "tertiary-fixed": "#abedff",
+              "on-secondary-fixed-variant": "#862123",
+              "tertiary-container": "#008298",
+              "surface-variant": "#e1e3e4",
+              "error-container": "#ffdad6",
+              "on-surface": "#191c1d",
+              "primary-container": "#e32b36",
+              "on-secondary-container": "#731217",
+              "surface-bright": "#f8f9fa",
+              "primary-fixed": "#ffdad7",
+              "on-tertiary-fixed-variant": "#004e5c",
+              "on-primary-container": "#ffffff",
+              "on-secondary-fixed": "#410005",
+              "secondary": "#a63838",
+              "primary": "#be0321",
+              "inverse-primary": "#ffb3ae",
+              "on-primary-fixed-variant": "#930016",
+              "surface-container-high": "#e7e8e9",
+              "surface-container-low": "#f3f4f5",
+              "tertiary": "#006779",
+              "surface-container": "#edeeef",
+              "secondary-fixed-dim": "#ffb3ae",
+              "outline": "#916f6d",
+              "on-background": "#191c1d",
+              "outline-variant": "#e5bdba",
+              "inverse-surface": "#2e3132",
+              "primary-fixed-dim": "#ffb3ae",
+              "on-error-container": "#93000a",
+              "on-tertiary-fixed": "#001f26",
+              "on-primary": "#ffffff",
+              "on-primary-fixed": "#410005",
+              "surface-dim": "#d9dadb",
+              "on-tertiary-container": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans", "Noto Sans JP"],
+              "body": ["Inter", "Noto Sans JP"],
+              "label": ["Inter", "Noto Sans JP"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "1rem", "xl": "1.25rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f8f9fa;
+            color: #191c1d;
+        }
+    </style>
+</head>
+<body class="font-body">
+<!-- SideNavBar -->
+<aside class="w-64 h-screen fixed left-0 top-0 bg-[#f3f4f5] border-none z-40 flex flex-col p-4 gap-2">
+<div class="mb-8 px-4 py-2">
+<h1 class="text-xl font-bold text-[#be0321] tracking-tight font-headline">Mercari Auto</h1>
+<p class="text-xs text-slate-500 font-medium">出品自動化ツール</p>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<!-- Active: ホーム -->
+<a class="flex items-center gap-3 px-4 py-3 bg-[#ffdad7] text-[#930016] rounded-full font-bold active:scale-95 duration-150 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-sm">ホーム</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-full transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+<span class="text-sm">クローン作成</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-full transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-sm">AI出品作成</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-full transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="refresh">refresh</span>
+<span class="text-sm">再出品・値下げ</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-full transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-sm">スケジュール</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200 rounded-full transition-colors active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm">設定</span>
+</a>
+</nav>
+<button class="mt-auto mb-4 mx-2 bg-primary text-on-primary py-4 px-6 rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-container transition-all active:scale-95">
+            新規出品作成
+        </button>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 left-64 h-16 z-30 bg-white/80 backdrop-blur-md flex justify-between items-center px-8 border-b border-slate-100">
+<div class="flex-1 max-w-xl">
+<div class="relative flex items-center group">
+<span class="material-symbols-outlined absolute left-3 text-slate-400" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="出品アイテムを検索..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 border-r border-slate-200 pr-6">
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</button>
+</div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface">メルカリ・マスター</p>
+<p class="text-[10px] text-slate-500">プロプラン利用中</p>
+</div>
+<img alt="ユーザーアバター" class="w-9 h-9 rounded-full object-cover ring-2 ring-transparent group-hover:ring-primary/30 transition-all" data-alt="professional male profile photo in a bright studio with soft lighting and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvUwKcLS2LtS_gmijdgZnkM2KHAbgEfHMprHe-1yyapIx4eQFRVMsJmWTL7hiFkdKo69upvmw2nsoxmem3dm6B9VBnRQrjrFXR0Y-Ahc71FE6TyWIaIgz6aKe0Fq4BhUfb1E8LDwY7o47XMVs6TvsUSULjoaHVF68ksVVYfCIkQV0ZRPDuLv58HZGlkrKWB8F6wXUGH0eqEWs7_queb3HctLz0Jc9m2oloo_vNQaF853IZf4QJid_S310lb8Yf5CWT2I3dEZILCuY"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pl-64 pt-16 min-h-screen">
+<div class="p-10 max-w-[1600px] mx-auto space-y-10">
+<!-- Hero / Welcome Section -->
+<section class="flex justify-between items-end">
+<div>
+<h2 class="text-3xl font-black font-headline tracking-tight text-on-surface mb-2">ダッシュボード概要</h2>
+<p class="text-slate-500">本日もお疲れ様です。現在の自動化ステータスを確認しましょう。</p>
+</div>
+<div class="flex gap-3">
+<div class="bg-tertiary/10 text-tertiary px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+                        自動価格調整: 稼働中
+                    </div>
+</div>
+</section>
+<!-- Summary Stats: Bento Grid Style -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between group hover:bg-primary transition-colors duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:text-white" data-icon="inventory_2">inventory_2</span>
+</div>
+<span class="text-xs font-bold text-slate-400 group-hover:text-white/60">Total</span>
+</div>
+<div>
+<p class="text-4xl font-black text-on-surface group-hover:text-white transition-colors">1,248</p>
+<p class="text-sm text-slate-500 mt-1 group-hover:text-white/80 transition-colors">現在の総出品数</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between group hover:bg-secondary transition-colors duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white" data-icon="update">update</span>
+</div>
+<span class="text-xs font-bold text-slate-400 group-hover:text-white/60">Warning</span>
+</div>
+<div>
+<div class="flex items-baseline gap-2">
+<p class="text-4xl font-black text-on-surface group-hover:text-white transition-colors">42</p>
+<span class="text-xs font-bold text-secondary group-hover:text-white/80">+5 today</span>
+</div>
+<p class="text-sm text-slate-500 mt-1 group-hover:text-white/80 transition-colors">再出品が必要なアイテム</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between group hover:bg-tertiary transition-colors duration-300">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 bg-tertiary/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+<span class="material-symbols-outlined text-tertiary group-hover:text-white" data-icon="trending_down">trending_down</span>
+</div>
+<span class="text-xs font-bold text-slate-400 group-hover:text-white/60">Active</span>
+</div>
+<div>
+<p class="text-4xl font-black text-on-surface group-hover:text-white transition-colors">86%</p>
+<p class="text-sm text-slate-500 mt-1 group-hover:text-white/80 transition-colors">自動値下げ適用率</p>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+<!-- Recent Activity Table -->
+<section class="lg:col-span-2 space-y-6">
+<div class="flex justify-between items-center px-2">
+<h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="list_alt">list_alt</span>
+                            最近のアクティビティ
+                        </h3>
+<a class="text-sm font-bold text-primary hover:underline" href="#">すべて見る</a>
+</div>
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low border-none">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">イベント</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">アイテム</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">時刻</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">ステータス</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-blue-100 text-blue-700 text-[10px] font-bold">自動出品</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm font-bold truncate max-w-[200px]">ヴィンテージ デニムジャケット M</p>
+</td>
+<td class="px-6 py-5 text-xs text-slate-400">10分前</td>
+<td class="px-6 py-5 text-right">
+<span class="text-xs text-tertiary font-bold">完了</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant text-[10px] font-bold">値下げ</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm font-bold truncate max-w-[200px]">一眼レフカメラ セット</p>
+</td>
+<td class="px-6 py-5 text-xs text-slate-400">32分前</td>
+<td class="px-6 py-5 text-right">
+<span class="text-xs text-tertiary font-bold">完了</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">予約タスク</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm font-bold truncate max-w-[200px]">ハイブランド スニーカー 27cm</p>
+</td>
+<td class="px-6 py-5 text-xs text-slate-400">1時間前</td>
+<td class="px-6 py-5 text-right">
+<span class="text-xs text-slate-400 font-bold">待機中</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="px-6 py-5">
+<span class="px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-bold">売上確定</span>
+</td>
+<td class="px-6 py-5">
+<p class="text-sm font-bold truncate max-w-[200px]">ワイヤレスヘッドホン WH-1000XM4</p>
+</td>
+<td class="px-6 py-5 text-xs text-slate-400">3時間前</td>
+<td class="px-6 py-5 text-right">
+<span class="text-xs text-primary font-bold">発送待ち</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Price Reduction Alerts -->
+<section class="space-y-6">
+<div class="flex justify-between items-center px-2">
+<h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="notification_important">notification_important</span>
+                            値下げアラート
+                        </h3>
+</div>
+<div class="space-y-4">
+<!-- Alert Card 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex gap-4 items-center group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="relative w-16 h-16 shrink-0 overflow-hidden rounded-lg">
+<img alt="スニーカー" class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="close-up of a vibrant red sports shoe on a clean white background with minimal shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEmLxfrwbdmLtNFTaV5uPcRlXSqJvzftjmzJflRUaGED_C9bsgO-kRU3dbFGeIEVhpXDWJ-Rpv-7b0Xk4Stq7aANdko6fKSrLjv43Vld9KeUCbpaIM106mQIqtxx99ZEQTK4yjdoItTk3dWgQ7wR0bFjt-_hZTW_vB8OBVRT99yybt9Eft-zqka2MsYTjmgFlg4AIyvEypaal_VpIGzuJNPvjyfzMKzIcqkP8mLCCbKfag_LHTPl_cwkKcr8X9LRE-pvxL8k2WOK4"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold line-clamp-1">限定カラー スポーツスニーカー</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-xs line-through text-slate-400">¥12,800</span>
+<span class="text-sm font-black text-primary">¥11,500</span>
+</div>
+</div>
+<div class="bg-red-50 text-red-600 font-bold text-xs px-2 py-1 rounded">
+                                -10%
+                            </div>
+</div>
+<!-- Alert Card 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex gap-4 items-center group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="relative w-16 h-16 shrink-0 overflow-hidden rounded-lg">
+<img alt="ウォッチ" class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="modern luxury minimalist watch on a soft grey silk background, studio professional photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcb0zsRZIr71rNh3uaFEgK3CmopM62Tqx6Wvue-rrfPNmpWQH_aHZ4U5fjonbpmpcQkdaoC_NViu1UH0c6oOl7-HN32D7jmoMmRijg2dyHYCOt_2XbkeYhMsb59HC57ZY0LGdKhlZbUVwJ-0HkO8BLWxxkhr2UOr_HBRopaYAKbug5UpPE05AvyB6hqJFduaNrpj4ULJxP5NlOKdTWQHjFjTckkwPBmMadmy6hwk2OPIve3WTIoxLg3b7Gwoei737mtdC0HsVy8BA"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold line-clamp-1">スマートウォッチ Series 7</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-xs line-through text-slate-400">¥35,000</span>
+<span class="text-sm font-black text-primary">¥31,500</span>
+</div>
+</div>
+<div class="bg-red-50 text-red-600 font-bold text-xs px-2 py-1 rounded">
+                                -10%
+                            </div>
+</div>
+<!-- Alert Card 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex gap-4 items-center group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
+<div class="relative w-16 h-16 shrink-0 overflow-hidden rounded-lg">
+<img alt="ヘッドホン" class="w-full h-full object-cover group-hover:scale-110 transition-transform" data-alt="professional audio headphones resting on a wooden table with soft morning light from a window" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC662_vn32-QoNuC5VhWkgmg9mB4qQgS5Ptynq6RIfGo4YjVnisM_goMkitKi3Wc3dXjv_I-1uc--vCCszeaplV0AGxMppk9yNbnIFeYdWBaG0_yVTyYMnYbrUpu4GWb9CVL4zvpNxTOS8NupHzVL2ExoAbYqOgLT0bOagbbzqRmAkfXpdNkYQnZv2J3HCG5be99KTOXt3iqNsLrk93KyllgtTjIJmMw-37jsc2dCcJjYxOgTCqfkGRNbMN9NpbQHYhCqJEUcLHEWI"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold line-clamp-1">ノイズキャンセリングヘッドホン</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-xs line-through text-slate-400">¥28,000</span>
+<span class="text-sm font-black text-primary">¥25,200</span>
+</div>
+</div>
+<div class="bg-red-50 text-red-600 font-bold text-xs px-2 py-1 rounded">
+                                -10%
+                            </div>
+</div>
+<button class="w-full py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-sm font-bold hover:border-primary/50 hover:text-primary transition-all">
+                            全てのアラートを確認
+                        </button>
+</div>
+</section>
+</div>
+<!-- Promotion / Quick Actions Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+<div class="relative bg-inverse-surface rounded-xl p-8 overflow-hidden group">
+<div class="relative z-10 text-white space-y-4 max-w-sm">
+<span class="bg-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Update</span>
+<h4 class="text-2xl font-black font-headline leading-tight">AIによる画像補正機能がリリースされました</h4>
+<p class="text-slate-400 text-sm">出品画像の明るさや背景をワンクリックで最適化。売却率が平均15%向上します。</p>
+<button class="bg-white text-on-surface px-6 py-2 rounded-lg text-sm font-bold hover:bg-primary hover:text-white transition-all">
+                            今すぐ試す
+                        </button>
+</div>
+<!-- Decorative Element -->
+<div class="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/40 transition-all duration-700"></div>
+</div>
+<div class="bg-[#ffdad7] rounded-xl p-8 flex items-center gap-8 relative overflow-hidden group">
+<div class="flex-1 space-y-4">
+<h4 class="text-2xl font-black font-headline text-[#930016] leading-tight">出品スケジュールを<br/>自動最適化</h4>
+<p class="text-[#862123] text-sm font-medium">閲覧数の多い時間帯をAIが分析し、自動的に出品・再出品を行います。</p>
+<div class="flex items-center gap-2 text-[#930016] font-bold text-sm cursor-pointer hover:translate-x-1 transition-transform">
+                            詳細設定はこちら
+                            <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<div class="w-24 h-24 flex items-center justify-center bg-white/40 rounded-full backdrop-blur-sm group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-[#be0321]" data-icon="auto_mode">auto_mode</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

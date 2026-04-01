@@ -1,0 +1,140 @@
+/* フリモーラ アシスト - Content Script Styles */
+
+#furimora-assist-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#furimora-toggle {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(187, 0, 23, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#furimora-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(187, 0, 23, 0.5);
+}
+
+#furimora-toggle:active { transform: scale(0.95); }
+
+#furimora-panel {
+  position: absolute;
+  bottom: 64px;
+  right: 0;
+  width: 280px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+#furimora-panel.furimora-hidden {
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  pointer-events: none;
+}
+
+#furimora-header {
+  background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+#furimora-close {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#furimora-body { padding: 14px; }
+
+.furimora-item-info {
+  background: #f9f9f9;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.furimora-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1c1c;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.furimora-price {
+  font-size: 16px;
+  font-weight: 900;
+  color: #bb0017;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.furimora-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.furimora-btn {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.furimora-btn:hover { opacity: 0.9; }
+.furimora-btn:active { transform: scale(0.97); }
+
+.furimora-btn-primary {
+  background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%);
+  color: white;
+  box-shadow: 0 3px 10px rgba(187, 0, 23, 0.25);
+}
+
+.furimora-btn-secondary {
+  background: #f3f3f3;
+  color: #1a1c1c;
+}
+
+#furimora-status {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  min-height: 18px;
+}
+
+.furimora-status-success { color: #00628c; }
+.furimora-status-error { color: #ba1a1a; }

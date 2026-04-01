@@ -1,0 +1,2538 @@
+<!DOCTYPE html>
+<html lang="ja" class="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#bb0017"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="フリモーラ"/>
+<meta name="description" content="メルカリ出品を自動化・最適化するアシスタントツール"/>
+<title>フリモーラ アシスト | 再出品・値下げ自動化</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#bb0017",
+        "primary-container": "#ea0020",
+        "on-primary": "#ffffff",
+        "primary-fixed": "#ffdad6",
+        "primary-fixed-dim": "#ffb3ac",
+        secondary: "#b62224",
+        "secondary-container": "#fd5650",
+        tertiary: "#00628c",
+        "tertiary-container": "#007cb0",
+        "on-tertiary-container": "#fcfcff",
+        surface: "#f9f9f9",
+        "surface-dim": "#dadada",
+        "surface-bright": "#f9f9f9",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f3f3f3",
+        "surface-container": "#eeeeee",
+        "surface-container-high": "#e8e8e8",
+        "surface-container-highest": "#e2e2e2",
+        "on-surface": "#1a1c1c",
+        "on-surface-variant": "#5f3e3b",
+        "outline": "#956d6a",
+        "outline-variant": "#eabcb7",
+        "error": "#ba1a1a",
+        "error-container": "#ffdad6",
+        "inverse-surface": "#2f3131",
+        "inverse-on-surface": "#f1f1f1",
+      },
+      fontFamily: {
+        headline: ['"Plus Jakarta Sans"', '"Noto Sans JP"', "sans-serif"],
+        body: ["Inter", '"Noto Sans JP"', "sans-serif"],
+        label: ["Inter", '"Noto Sans JP"', "sans-serif"],
+      },
+      borderRadius: {
+        DEFAULT: "1rem",
+        sm: "0.5rem",
+        md: "0.75rem",
+        lg: "1.5rem",
+        xl: "2rem",
+        full: "9999px",
+      },
+    },
+  },
+};
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    background: #f9f9f9;
+    color: #1a1c1c;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+    user-select: none;
+  }
+  .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+  .glass {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .bg-signature-gradient { background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%); }
+
+  .pulse-dot {
+    width: 8px; height: 8px;
+    background: #bb0017; border-radius: 50%; display: inline-block;
+    box-shadow: 0 0 0 0 rgba(187,0,23,0.4);
+    animation: pulse-ring 1.5s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(187,0,23,0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(187,0,23,0); }
+    100% { box-shadow: 0 0 0 0 rgba(187,0,23,0); }
+  }
+
+  .page { display: none; animation: fadeUp 0.25s ease; }
+  .page.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #eabcb7; border-radius: 99px; }
+
+  @media (min-width: 768px) {
+    #bottom-nav { display: none !important; }
+    #sidebar { display: flex !important; }
+    #mobile-header { display: none !important; }
+    #main-content { margin-left: 256px; padding-top: 4rem; }
+    #desktop-topbar { display: flex !important; }
+  }
+  @media (max-width: 767px) {
+    #sidebar { display: none !important; }
+    #desktop-topbar { display: none !important; }
+    #main-content { padding-top: 4rem; padding-bottom: 6rem; }
+  }
+
+  .toggle-track {
+    width: 44px; height: 24px; background: #e2e2e2; border-radius: 12px;
+    position: relative; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-track.on { background: #bb0017; }
+  .toggle-thumb {
+    width: 18px; height: 18px; background: white; border-radius: 50%;
+    position: absolute; top: 3px; left: 3px;
+    transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-track.on .toggle-thumb { transform: translateX(20px); }
+
+  .step-line { height: 2px; background: #e2e2e2; flex: 1; }
+  .step-line.done { background: #bb0017; }
+
+  .card-interactive { transition: background 0.15s; cursor: pointer; }
+  .card-interactive:hover { background: #f3f3f3 !important; }
+  .card-interactive:active { transform: scale(0.99); }
+
+  .stat-card { transition: all 0.2s; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(187,0,23,0.08) !important; }
+
+  #toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: #2f3131; color: white; padding: 10px 20px; border-radius: 99px;
+    font-size: 13px; font-weight: 600; z-index: 9999;
+    opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (min-width: 768px) { #toast { bottom: 32px; } }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px); z-index: 100; display: none;
+    align-items: flex-end; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  @media (min-width: 768px) { .modal-overlay { align-items: center; } }
+  .modal-sheet {
+    background: white; width: 100%; max-width: 560px;
+    border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem;
+    animation: slideUp 0.25s ease;
+  }
+  @media (min-width: 768px) { .modal-sheet { border-radius: 1.5rem; margin: 1rem; } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- DESKTOP SIDEBAR -->
+<aside id="sidebar" class="fixed left-0 top-0 h-screen w-64 bg-surface-container-low flex-col z-40 p-4 gap-1">
+  <div class="mb-8 px-4 py-3">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 bg-signature-gradient rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
+        <span class="material-symbols-outlined text-white text-xl">package_2</span>
+      </div>
+      <div>
+        <h1 class="font-headline font-black text-base text-primary tracking-tight leading-tight">フリモーラ</h1>
+        <p class="text-[10px] text-on-surface-variant font-medium">出品自動化アシスト</p>
+      </div>
+    </div>
+  </div>
+  <nav class="flex flex-col gap-1 flex-1">
+    <button onclick="navigate('home')" data-nav="home" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 text-on-surface-variant hover:bg-surface-container">
+      <span class="material-symbols-outlined text-xl">home</span>ホーム
+    </button>
+    <button onclick="navigate('clone')" data-nav="clone" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 text-on-surface-variant hover:bg-surface-container">
+      <span class="material-symbols-outlined text-xl">content_copy</span>クローン作成
+    </button>
+    <button onclick="navigate('listing')" data-nav="listing" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 text-on-surface-variant hover:bg-surface-container">
+      <span class="material-symbols-outlined text-xl">add_box</span>AI出品
+    </button>
+    <button onclick="navigate('relist')" data-nav="relist" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 text-on-surface-variant hover:bg-surface-container">
+      <span class="material-symbols-outlined text-xl">autorenew</span>再出品・値下げ
+    </button>
+    <button onclick="navigate('schedule')" data-nav="schedule" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 text-on-surface-variant hover:bg-surface-container">
+      <span class="material-symbols-outlined text-xl">calendar_month</span>スケジュール
+    </button>
+    <button onclick="navigate('settings')" data-nav="settings" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 text-on-surface-variant hover:bg-surface-container">
+      <span class="material-symbols-outlined text-xl">settings</span>設定
+    </button>
+  </nav>
+  <div class="mt-4 mx-2">
+    <button onclick="navigate('listing')" class="w-full bg-signature-gradient text-white py-3.5 px-5 rounded-full font-bold text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined text-xl">add</span>新規出品作成
+    </button>
+  </div>
+</aside>
+
+<!-- DESKTOP TOP BAR -->
+<header id="desktop-topbar" class="fixed top-0 right-0 left-64 h-16 z-30 glass border-b border-surface-container items-center px-8 gap-4">
+  <div class="flex-1 max-w-md">
+    <div class="relative flex items-center">
+      <span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-xl">search</span>
+      <input type="text" placeholder="商品を検索..." class="w-full bg-surface-container border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"/>
+    </div>
+  </div>
+  <div class="flex items-center gap-4 ml-auto">
+    <button onclick="showNotifications()" class="relative text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container">
+      <span class="material-symbols-outlined">notifications</span>
+      <span class="notif-badge absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full hidden"></span>
+    </button>
+    <div class="flex items-center gap-2.5 cursor-pointer group">
+      <div class="text-right">
+        <p class="text-xs font-bold text-on-surface" id="profile-name">ゲスト</p>
+        <p class="text-[10px] text-on-surface-variant" id="profile-plan">無料プラン</p>
+      </div>
+      <div class="w-9 h-9 rounded-full bg-signature-gradient flex items-center justify-center text-white font-bold text-sm ring-2 ring-transparent group-hover:ring-primary/30 transition-all">M</div>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE HEADER -->
+<header id="mobile-header" class="fixed top-0 left-0 w-full z-40 glass h-16 flex items-center justify-between px-5">
+  <div class="flex items-center gap-2.5">
+    <div class="w-8 h-8 bg-signature-gradient rounded-xl flex items-center justify-center shadow-sm shadow-primary/25">
+      <span class="material-symbols-outlined text-white text-lg">package_2</span>
+    </div>
+    <h1 class="font-headline font-black text-base text-primary tracking-tight">フリモーラ</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    <button onclick="showNotifications()" class="relative text-on-surface-variant p-2 rounded-full active:bg-surface-container transition-colors">
+      <span class="material-symbols-outlined text-xl">notifications</span>
+      <span class="notif-badge absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full hidden"></span>
+    </button>
+    <button onclick="navigate('settings')" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center active:bg-surface-container-high transition-colors">
+      <span class="material-symbols-outlined text-lg">settings</span>
+    </button>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0 h-px bg-surface-container"></div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main-content" class="min-h-screen">
+
+  <!-- PAGE: HOME -->
+  <section id="page-home" class="page active px-5 py-6 max-w-5xl mx-auto space-y-7">
+    <div class="flex items-end justify-between">
+      <div>
+        <p class="text-on-surface-variant text-sm font-medium">お疲れ様です</p>
+        <h2 class="font-headline font-black text-2xl text-on-surface tracking-tight mt-0.5">ダッシュボード</h2>
+      </div>
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-tertiary/10 rounded-full">
+        <span class="pulse-dot"></span>
+        <span class="text-xs font-bold text-tertiary">自動化 稼働中</span>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="stat-card bg-surface-container-lowest p-5 rounded-lg shadow-sm shadow-primary/5 flex flex-col justify-between min-h-[120px] relative overflow-hidden">
+        <div class="absolute -right-3 -top-3 opacity-[0.04]"><span class="material-symbols-outlined text-7xl">inventory_2</span></div>
+        <p class="text-on-surface-variant text-xs font-semibold">総出品数</p>
+        <div>
+          <h3 class="font-headline font-black text-3xl tracking-tighter" id="stat-total">—</h3>
+          <p class="text-[10px] text-tertiary font-semibold mt-1 flex items-center gap-1" id="stat-total-sub" style="display:none">
+            <span class="material-symbols-outlined text-xs">trending_up</span><span id="stat-total-label"></span>
+          </p>
+        </div>
+      </div>
+      <div class="stat-card bg-surface-container-lowest p-5 rounded-lg shadow-sm shadow-primary/5 flex flex-col justify-between min-h-[120px] relative overflow-hidden">
+        <div class="absolute -right-3 -top-3 opacity-[0.04]"><span class="material-symbols-outlined text-7xl">price_check</span></div>
+        <p class="text-on-surface-variant text-xs font-semibold">本日の値下げ</p>
+        <div>
+          <h3 class="font-headline font-black text-3xl tracking-tighter text-primary" id="stat-discount">—</h3>
+          <p class="text-[10px] text-on-surface-variant font-medium mt-1 flex items-center gap-1.5">
+            <span class="pulse-dot" style="width:6px;height:6px"></span>自動調整中
+          </p>
+        </div>
+      </div>
+      <div class="stat-card bg-surface-container-lowest p-5 rounded-lg shadow-sm shadow-primary/5 flex flex-col justify-between min-h-[120px] relative overflow-hidden">
+        <div class="absolute -right-3 -top-3 opacity-[0.04]"><span class="material-symbols-outlined text-7xl">autorenew</span></div>
+        <p class="text-on-surface-variant text-xs font-semibold">再出品待ち</p>
+        <div>
+          <h3 class="font-headline font-black text-3xl tracking-tighter" id="stat-relist">—</h3>
+          <button onclick="navigate('relist')" class="text-[10px] text-primary font-bold mt-1 flex items-center gap-0.5 hover:underline">
+            管理する <span class="material-symbols-outlined text-xs">chevron_right</span>
+          </button>
+        </div>
+      </div>
+      <div class="stat-card bg-primary p-5 rounded-lg shadow-lg shadow-primary/30 flex flex-col justify-between min-h-[120px] text-white relative overflow-hidden">
+        <div class="absolute -right-3 -top-3 opacity-10"><span class="material-symbols-outlined text-7xl">payments</span></div>
+        <p class="text-white/70 text-xs font-semibold">今月の利益</p>
+        <div>
+          <h3 class="font-headline font-black text-2xl tracking-tighter" id="stat-profit">—</h3>
+          <p class="text-white/70 text-[10px] font-medium mt-1">販売手数料後</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="navigate('clone')" class="bg-surface-container-lowest p-4 rounded-lg shadow-sm flex items-center gap-3 text-left card-interactive">
+        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-primary">content_copy</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm">クローン作成</p>
+          <p class="text-[10px] text-on-surface-variant">URLから即複製</p>
+        </div>
+      </button>
+      <button onclick="navigate('listing')" class="bg-surface-container-lowest p-4 rounded-lg shadow-sm flex items-center gap-3 text-left card-interactive">
+        <div class="w-10 h-10 bg-tertiary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-tertiary">auto_awesome</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm">AI出品作成</p>
+          <p class="text-[10px] text-on-surface-variant">説明文を自動生成</p>
+        </div>
+      </button>
+    </div>
+
+    <!-- Alerts -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-headline font-bold text-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary icon-filled text-xl">bolt</span>値下げアラート
+        </h3>
+        <span class="text-[11px] text-error font-semibold bg-error-container/40 px-2 py-0.5 rounded-full">24h未販売</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="alert-list"></div>
+    </section>
+
+    <!-- Activity -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-headline font-bold text-lg">最近のアクティビティ</h3>
+        <button class="text-primary text-xs font-bold hover:underline">すべて見る</button>
+      </div>
+      <div class="space-y-2" id="activity-list"></div>
+    </section>
+
+    <!-- Banner -->
+    <div class="bg-inverse-surface rounded-xl p-6 overflow-hidden relative group">
+      <div class="relative z-10 text-white space-y-3 max-w-sm">
+        <span class="bg-primary px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block">New</span>
+        <h4 class="text-xl font-black font-headline leading-tight">AIによる画像補正機能がリリース</h4>
+        <p class="text-white/60 text-sm">出品画像の明るさや背景をワンクリックで最適化。売却率が平均15%向上。</p>
+        <button class="bg-white text-on-surface px-5 py-2 rounded-full text-sm font-bold hover:bg-primary hover:text-white transition-all">今すぐ試す</button>
+      </div>
+      <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/40 transition-all duration-700"></div>
+    </div>
+  </section>
+
+  <!-- PAGE: CLONE -->
+  <section id="page-clone" class="page px-5 py-6 max-w-2xl mx-auto space-y-6">
+    <div>
+      <h2 class="font-headline font-black text-2xl tracking-tight">クローン作成</h2>
+      <p class="text-on-surface-variant text-sm mt-1">商品URLを入力して情報を自動抽出します</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="flex items-center gap-2">
+      <div class="flex flex-col items-center gap-1.5">
+        <div id="step-1-circle" class="w-9 h-9 rounded-full bg-signature-gradient text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/25">1</div>
+        <span class="text-[10px] font-bold text-primary">URL入力</span>
+      </div>
+      <div id="step-line-1" class="step-line"></div>
+      <div class="flex flex-col items-center gap-1.5 opacity-40" id="step-2-container">
+        <div id="step-2-circle" class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold text-sm">2</div>
+        <span class="text-[10px] font-bold">抽出・編集</span>
+      </div>
+      <div id="step-line-2" class="step-line"></div>
+      <div class="flex flex-col items-center gap-1.5 opacity-40" id="step-3-container">
+        <div id="step-3-circle" class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold text-sm">3</div>
+        <span class="text-[10px] font-bold">完了</span>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="clone-step-1" class="bg-surface-container-lowest p-6 rounded-lg shadow-sm space-y-4">
+      <!-- クリップボード検知バナー -->
+      <div id="clipboard-banner" class="hidden bg-tertiary/10 border border-tertiary/20 rounded-xl px-4 py-3 flex items-center gap-3">
+        <span class="material-symbols-outlined text-tertiary text-lg flex-shrink-0">content_paste_go</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-bold text-tertiary">コピー済みのURLを検出</p>
+          <p id="clipboard-banner-url" class="text-[10px] text-on-surface-variant truncate mt-0.5"></p>
+        </div>
+        <button onclick="useBannerUrl()" class="shrink-0 bg-tertiary text-white text-xs font-bold px-3 py-1.5 rounded-full">取得</button>
+        <button onclick="document.getElementById('clipboard-banner').classList.add('hidden')" class="shrink-0 text-on-surface-variant">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+      <label class="block text-sm font-bold flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-lg">link</span>商品URLを貼り付け
+      </label>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input id="clone-url-input" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://jp.mercari.com/item/m..."
+          class="flex-1 bg-surface-container rounded-full px-5 py-3.5 border-none focus:ring-2 focus:ring-primary/20 text-sm outline-none placeholder:text-on-surface-variant/50"/>
+        <button onclick="fetchCloneData()" id="clone-fetch-btn"
+          class="bg-signature-gradient text-white px-6 py-3.5 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm whitespace-nowrap">
+          <span class="material-symbols-outlined text-lg">download</span>データ取得
+        </button>
+      </div>
+      <button onclick="pasteAndFetch()" id="clipboard-paste-btn"
+        class="w-full flex items-center justify-center gap-2 bg-surface-container text-on-surface-variant py-3 rounded-full text-sm font-bold hover:bg-surface-container-high active:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined text-lg">content_paste</span>クリップボードからURLを貼り付けて取得
+      </button>
+      <p class="text-[11px] text-on-surface-variant">※ メルカリ商品ページのURLをコピーしてから上のボタンをタップ。Safariでコピーしたままアプリを開くだけでOK。</p>
+      <div id="clone-error" class="hidden bg-error-container/40 text-error text-xs font-semibold px-4 py-2.5 rounded-xl items-center gap-2">
+        <span class="material-symbols-outlined text-sm">error</span><span id="clone-error-msg"></span>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="clone-step-2" class="hidden space-y-4">
+
+      <!-- 使い方ガイド + いいね数 -->
+      <div class="flex items-center gap-3">
+        <div class="flex-1 bg-tertiary/8 border border-tertiary/20 rounded-xl px-4 py-3 text-xs text-tertiary font-medium leading-relaxed">
+          各フィールドの「コピー」ボタンでテキストをコピー → メルカリの出品フォームに貼り付けてください。
+        </div>
+        <div id="likes-count-badge" class="hidden flex-shrink-0 flex flex-col items-center justify-center bg-surface-container-lowest rounded-xl px-4 py-3 shadow-sm min-w-[72px]">
+          <span class="material-symbols-outlined text-xl text-rose-400 icon-filled">favorite</span>
+          <span id="likes-count-value" class="font-headline font-black text-lg leading-none mt-0.5">0</span>
+          <span class="text-[10px] text-on-surface-variant">いいね</span>
+        </div>
+      </div>
+
+      <!-- 写真セクション -->
+      <div class="bg-surface-container-lowest rounded-lg p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-lg">photo_library</span>
+            商品写真 <span id="img-count-label" class="text-xs text-on-surface-variant font-normal">0枚</span>
+          </h3>
+          <button onclick="downloadAllImages()" id="open-all-img-btn" class="hidden text-[11px] text-white font-bold flex items-center gap-1 bg-signature-gradient px-3 py-1.5 rounded-full shadow-sm hover:opacity-90 transition-opacity">
+            <span class="material-symbols-outlined text-sm">download</span>全写真を保存
+          </button>
+        </div>
+        <div class="grid grid-cols-4 sm:grid-cols-5 gap-2" id="extracted-images"></div>
+        <p class="text-[10px] text-on-surface-variant">※ 画像を長押し（またはクリック）して保存してください</p>
+      </div>
+
+      <!-- フィールド一覧 -->
+      <div class="bg-surface-container-lowest rounded-lg shadow-sm divide-y divide-surface-container">
+
+        <!-- タイトル -->
+        <div class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">商品名</label>
+            <button onclick="copyField('clone-title')" class="copy-btn text-[11px] text-primary font-bold flex items-center gap-1 bg-primary/8 px-3 py-1 rounded-full hover:bg-primary/15 transition-colors">
+              <span class="material-symbols-outlined text-sm">content_copy</span>コピー
+            </button>
+          </div>
+          <input id="clone-title" type="text" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none"/>
+        </div>
+
+        <!-- 価格 -->
+        <div class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">価格（円）</label>
+            <button onclick="copyField('clone-price')" class="copy-btn text-[11px] text-primary font-bold flex items-center gap-1 bg-primary/8 px-3 py-1 rounded-full hover:bg-primary/15 transition-colors">
+              <span class="material-symbols-outlined text-sm">content_copy</span>コピー
+            </button>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-baseline gap-1 flex-1">
+              <span class="text-sm font-bold text-on-surface-variant">¥</span>
+              <input id="clone-price" type="number" oninput="updateFeeCalc()"
+                class="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 font-headline font-bold text-lg focus:ring-2 focus:ring-primary/20 outline-none"/>
+            </div>
+            <div class="text-right text-xs text-on-surface-variant shrink-0">
+              <div>手数料(10%): <span id="fee-amount" class="font-semibold">¥0</span></div>
+              <div class="text-primary font-bold">利益: <span id="profit-amount">¥0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 説明文 -->
+        <div class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">商品説明</label>
+            <div class="flex gap-2">
+              <button onclick="improveDescription()" class="text-[11px] text-on-surface-variant font-bold flex items-center gap-1 bg-surface-container px-3 py-1 rounded-full hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-sm">auto_fix_high</span>AIで改善
+              </button>
+              <button onclick="copyField('clone-description')" class="copy-btn text-[11px] text-primary font-bold flex items-center gap-1 bg-primary/8 px-3 py-1 rounded-full hover:bg-primary/15 transition-colors">
+                <span class="material-symbols-outlined text-sm">content_copy</span>コピー
+              </button>
+            </div>
+          </div>
+          <textarea id="clone-description" rows="7" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 text-sm leading-relaxed focus:ring-2 focus:ring-primary/20 outline-none resize-none"></textarea>
+        </div>
+
+        <!-- カテゴリ -->
+        <div class="p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">カテゴリ</label>
+            <button onclick="copyField('clone-category-input')" class="copy-btn text-[11px] text-primary font-bold flex items-center gap-1 bg-primary/8 px-3 py-1 rounded-full hover:bg-primary/15 transition-colors">
+              <span class="material-symbols-outlined text-sm">content_copy</span>コピー
+            </button>
+          </div>
+          <input id="clone-category-input" type="text" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none" readonly/>
+        </div>
+
+        <!-- 商品状態（参照用・コピー不要） -->
+        <div class="p-4 space-y-2">
+          <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block">商品の状態 <span class="text-[10px] font-normal normal-case text-on-surface-variant/60">（出品フォームで選択）</span></label>
+          <input id="clone-condition-input" type="text" class="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm font-medium outline-none" readonly/>
+        </div>
+
+        <!-- 配送情報（参照用） -->
+        <div class="p-4 space-y-3">
+          <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block">配送情報 <span class="text-[10px] font-normal normal-case text-on-surface-variant/60">（出品フォームで選択）</span></label>
+          <div class="grid grid-cols-1 gap-2" id="shipping-fields"></div>
+        </div>
+
+      </div>
+
+      <button onclick="createClone()"
+        class="w-full bg-signature-gradient text-white py-5 rounded-full font-bold text-base flex items-center justify-center gap-3 shadow-xl shadow-primary/25 hover:scale-[1.01] active:scale-[0.98] transition-all">
+        <span class="material-symbols-outlined text-xl icon-filled">content_copy</span>クローンを作成・保存
+      </button>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="clone-step-3" class="hidden bg-surface-container-lowest rounded-lg p-8 shadow-sm text-center space-y-4">
+      <div class="w-20 h-20 bg-tertiary/10 rounded-full flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-tertiary text-4xl icon-filled">check_circle</span>
+      </div>
+      <h3 class="font-headline font-black text-xl">クローン完了！</h3>
+      <p class="text-on-surface-variant text-sm">出品の準備ができました。下書きに保存されました。</p>
+      <div class="flex gap-3 pt-2">
+        <button onclick="navigate('listing')" class="flex-1 bg-signature-gradient text-white py-3.5 rounded-full font-bold text-sm shadow-lg shadow-primary/20">AI設定で編集</button>
+        <button onclick="resetClone()" class="flex-1 bg-surface-container text-on-surface py-3.5 rounded-full font-bold text-sm">もう1つ作成</button>
+      </div>
+    </div>
+
+    <!-- Drafts List -->
+    <div id="drafts-section" class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-headline font-bold text-lg flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary icon-filled text-xl">folder_copy</span>
+          下書き一覧
+          <span id="drafts-count" class="text-xs font-bold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">0件</span>
+        </h3>
+        <button onclick="clearAllDrafts()" id="drafts-clear-btn" class="hidden text-xs text-error font-bold hover:underline flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">delete_sweep</span>全削除
+        </button>
+      </div>
+      <div id="drafts-list"></div>
+    </div>
+  </section>
+
+  <!-- PAGE: LISTING (出品アシスタント起点) -->
+  <section id="page-listing" class="page px-5 py-6 max-w-2xl mx-auto space-y-5">
+    <div>
+      <h2 class="font-headline font-black text-2xl tracking-tight">新規出品</h2>
+      <p class="text-on-surface-variant text-sm mt-1">価格・説明文・値下げスケジュールを設定して出品リストに追加</p>
+    </div>
+
+    <!-- CTA -->
+    <button onclick="openNewItemModal(null)"
+      class="w-full bg-signature-gradient text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.98] transition-all">
+      <span class="material-symbols-outlined text-2xl">add_circle</span>新規出品アシスタントを開く
+    </button>
+
+    <!-- クローン下書きから追加 -->
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low flex items-center justify-between">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">クローン下書きから出品登録</p>
+        <span id="listing-drafts-count" class="text-xs text-on-surface-variant"></span>
+      </div>
+      <div id="listing-drafts-list" class="divide-y divide-surface-container"></div>
+    </div>
+  </section>
+
+  <!-- PAGE: RELIST (在庫・出品管理) -->
+  <section id="page-relist" class="page px-4 py-5 max-w-4xl mx-auto space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-headline font-black text-2xl tracking-tight">在庫・出品管理</h2>
+        <p class="text-on-surface-variant text-sm mt-0.5">出品中の商品を一元管理</p>
+      </div>
+      <button onclick="openNewItemModal(null)" class="bg-signature-gradient text-white px-4 py-2.5 rounded-full font-bold text-sm shadow-lg flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-lg">add</span>新規出品
+      </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="grid grid-cols-5 gap-2">
+      <div class="bg-surface-container-lowest rounded-lg p-3 text-center shadow-sm">
+        <p class="text-[10px] text-on-surface-variant mb-0.5">総件数</p>
+        <p class="font-headline font-black text-xl" id="items-stat-total">0</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-lg p-3 text-center shadow-sm">
+        <p class="text-[10px] text-on-surface-variant mb-0.5">出品中</p>
+        <p class="font-headline font-black text-xl text-tertiary" id="items-stat-active">0</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-lg p-3 text-center shadow-sm">
+        <p class="text-[10px] text-on-surface-variant mb-0.5">30日超</p>
+        <p class="font-headline font-black text-xl text-primary" id="items-stat-over30">0</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-lg p-3 text-center shadow-sm">
+        <p class="text-[10px] text-on-surface-variant mb-0.5">60日超</p>
+        <p class="font-headline font-black text-xl text-error" id="items-stat-over60">0</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-lg p-3 text-center shadow-sm">
+        <p class="text-[10px] text-on-surface-variant mb-0.5">平均滞留</p>
+        <p class="font-headline font-black text-xl" id="items-stat-avg">0<span class="text-sm font-medium">日</span></p>
+      </div>
+    </div>
+
+    <!-- Filter tabs + Search -->
+    <div class="space-y-3">
+      <div class="flex gap-1.5 overflow-x-auto pb-0.5">
+        <button onclick="setItemFilter('all')" id="filter-all" class="item-filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-primary text-white">すべて</button>
+        <button onclick="setItemFilter('active')" id="filter-active" class="item-filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-surface-container text-on-surface-variant">出品中</button>
+        <button onclick="setItemFilter('over30')" id="filter-over30" class="item-filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-surface-container text-on-surface-variant">▲ 30日超</button>
+        <button onclick="setItemFilter('over60')" id="filter-over60" class="item-filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-surface-container text-on-surface-variant">● 60日超</button>
+        <button onclick="setItemFilter('relisted')" id="filter-relisted" class="item-filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-surface-container text-on-surface-variant">再出品済</button>
+        <button onclick="setItemFilter('sold')" id="filter-sold" class="item-filter-btn flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-surface-container text-on-surface-variant">売却済</button>
+      </div>
+      <div class="flex gap-2">
+        <div class="flex-1 relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+          <input id="items-search" type="text" placeholder="タイトル検索..." oninput="renderItems()"
+            class="w-full bg-surface-container-lowest border-none rounded-full py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"/>
+        </div>
+        <button onclick="exportItemsCSV()" class="px-4 py-2.5 bg-surface-container-lowest rounded-full text-xs font-bold shadow-sm hover:bg-surface-container flex items-center gap-1.5 flex-shrink-0">
+          <span class="material-symbols-outlined text-sm">download</span>CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Items list -->
+    <div id="items-list" class="space-y-3"></div>
+  </section>
+
+  <!-- PAGE: SCHEDULE -->
+  <section id="page-schedule" class="page px-5 py-6 max-w-2xl mx-auto space-y-5">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-headline font-black text-2xl tracking-tight">スケジュール</h2>
+        <p class="text-on-surface-variant text-sm mt-0.5">自動化タスクの管理</p>
+      </div>
+      <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-full">
+        <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+        <span class="text-xs font-bold">自動実行中</span>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="bg-surface-container-lowest p-5 rounded-lg shadow-sm">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="font-headline font-bold text-xl" id="cal-month-label">2026年 3月</h3>
+        <div class="flex gap-1">
+          <button onclick="changeMonth(-1)" class="p-2 hover:bg-surface-container rounded-full transition-colors active:scale-90">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <button onclick="changeMonth(1)" class="p-2 hover:bg-surface-container rounded-full transition-colors active:scale-90">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-7 gap-1 text-center mb-1">
+        <div class="text-on-surface-variant text-[10px] font-bold py-1">月</div>
+        <div class="text-on-surface-variant text-[10px] font-bold py-1">火</div>
+        <div class="text-on-surface-variant text-[10px] font-bold py-1">水</div>
+        <div class="text-on-surface-variant text-[10px] font-bold py-1">木</div>
+        <div class="text-on-surface-variant text-[10px] font-bold py-1">金</div>
+        <div class="text-primary text-[10px] font-bold py-1">土</div>
+        <div class="text-primary text-[10px] font-bold py-1">日</div>
+      </div>
+      <div class="grid grid-cols-7 gap-1" id="calendar-grid"></div>
+    </div>
+
+    <!-- Schedule items -->
+    <div>
+      <div class="flex justify-between items-end mb-4">
+        <div>
+          <span class="text-primary font-bold text-xs tracking-widest uppercase">Schedule</span>
+          <h3 class="text-xl font-black font-headline mt-0.5" id="selected-day-label">3月26日 (水) の予定</h3>
+        </div>
+      </div>
+      <div class="space-y-3" id="schedule-list"></div>
+    </div>
+
+    <button onclick="addScheduleItem()" class="fixed bottom-24 right-5 w-14 h-14 bg-signature-gradient text-white rounded-full shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-30 md:bottom-8 md:right-8">
+      <span class="material-symbols-outlined text-2xl">add</span>
+    </button>
+  </section>
+
+  <!-- PAGE: SETTINGS -->
+  <section id="page-settings" class="page px-5 py-6 max-w-2xl mx-auto space-y-5">
+    <div>
+      <h2 class="font-headline font-black text-2xl tracking-tight">設定</h2>
+      <p class="text-on-surface-variant text-sm mt-1">アカウントと自動化の設定</p>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">アカウント</p>
+      </div>
+      <div class="divide-y divide-surface-container">
+        <div class="flex items-center justify-between px-5 py-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">person</span>
+            <div><p class="text-sm font-bold">プロフィール</p><p class="text-[11px] text-on-surface-variant" id="settings-profile-name">未設定</p></div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">star</span>
+            <div><p class="text-sm font-bold">プランと請求</p><p class="text-[11px] text-on-surface-variant" id="settings-plan-name">無料プラン</p></div>
+          </div>
+          <span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-0.5 rounded-sm">PRO</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">自動化</p>
+      </div>
+      <div class="divide-y divide-surface-container">
+        <div class="flex items-center justify-between px-5 py-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">schedule</span>
+            <div><p class="text-sm font-bold">自動値下げ</p><p class="text-[11px] text-on-surface-variant">24時間ごと</p></div>
+          </div>
+          <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+            <div><p class="text-sm font-bold">プッシュ通知</p><p class="text-[11px] text-on-surface-variant">値下げ・再出品アラート</p></div>
+          </div>
+          <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">auto_awesome</span>
+            <div><p class="text-sm font-bold">AI説明文自動生成</p><p class="text-[11px] text-on-surface-variant">クローン時に自動起動</p></div>
+          </div>
+          <div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ダウンロード設定 -->
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">ダウンロード</p>
+      </div>
+      <div class="divide-y divide-surface-container">
+        <div class="px-5 py-4 space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+              <span class="material-symbols-outlined text-on-surface-variant mt-0.5">folder_open</span>
+              <div class="min-w-0">
+                <p class="text-sm font-bold">ダウンロード先フォルダ</p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5 truncate" id="download-folder-name">未設定（ブラウザのダウンロードフォルダ）</p>
+              </div>
+            </div>
+            <button onclick="selectDownloadFolder()" class="shrink-0 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">
+              変更
+            </button>
+          </div>
+          <p class="text-[10px] text-on-surface-variant/70 pl-9">フォルダを選択すると、出品IDのサブフォルダを自動作成して写真を整理します。</p>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">create_new_folder</span>
+            <div><p class="text-sm font-bold">出品IDフォルダを自動作成</p><p class="text-[11px] text-on-surface-variant">例: m12345678/01.jpg</p></div>
+          </div>
+          <div class="toggle-track on" id="folder-per-item-toggle" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- テンプレート管理 -->
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low flex items-center justify-between">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">テンプレート管理</p>
+        <button onclick="openTemplateEditor(null)" class="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full hover:bg-primary/20 transition-colors">
+          ＋ 追加
+        </button>
+      </div>
+      <div id="templates-list" class="divide-y divide-surface-container">
+        <div class="px-5 py-4 text-xs text-on-surface-variant/60 text-center">読み込み中...</div>
+      </div>
+    </div>
+
+    <!-- モバイル連携 -->
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">モバイル連携</p>
+      </div>
+      <div class="divide-y divide-surface-container">
+
+        <!-- 推奨: クリップボード -->
+        <div class="px-5 py-4 space-y-2">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-tertiary mt-0.5">content_paste_go</span>
+            <div>
+              <p class="text-sm font-bold">📱 クリップボード貼り付け（iOS・Android 共通・推奨）</p>
+              <p class="text-[11px] text-on-surface-variant mt-0.5">最も確実な方法。追加設定不要</p>
+            </div>
+          </div>
+          <div class="bg-surface-container rounded-xl px-4 py-3 space-y-1.5">
+            <p class="text-[11px] text-on-surface-variant">① メルカリ商品ページのURLをコピー（アドレスバー長押し）</p>
+            <p class="text-[11px] text-on-surface-variant">② フリモーラを開くとバナーが自動表示 → 「取得」タップ</p>
+            <p class="text-[11px] text-on-surface-variant">または「クリップボードから貼り付けて取得」ボタンをタップ</p>
+          </div>
+        </div>
+
+        <!-- iOS ブックマークレット -->
+        <div class="px-5 py-4 space-y-2">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant mt-0.5">bookmark_add</span>
+            <div>
+              <p class="text-sm font-bold">iOS Safari ブックマークレット</p>
+              <p class="text-[11px] text-on-surface-variant mt-0.5">設定すればワンタップ。iOSキーボードの自動修正に注意</p>
+            </div>
+          </div>
+          <div class="bg-surface-container rounded-xl px-4 py-3 space-y-2">
+            <p class="text-[11px] text-on-surface-variant">① 下のコードをコピー</p>
+            <div class="flex items-center gap-2">
+              <code id="bookmarklet-code" class="flex-1 text-[10px] bg-surface-container-high rounded-lg px-3 py-2 break-all text-on-surface font-mono select-all">javascript:location.href='https://furimora-assist.vercel.app?mercari_url='+encodeURIComponent(location.href)</code>
+              <button onclick="copyBookmarklet()" class="shrink-0 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">コピー</button>
+            </div>
+            <p class="text-[11px] text-on-surface-variant">② このページをSafariでブックマーク登録</p>
+            <p class="text-[11px] text-on-surface-variant">③ ブックマーク編集 → URL欄を全選択して削除 → 貼り付け</p>
+            <p class="text-[11px] font-bold text-error">⚠️ 「JavaScript」と大文字にならないよう注意。なった場合は手動で「j」を小文字に修正</p>
+            <p class="text-[11px] text-on-surface-variant">④ メルカリ商品ページでブックマークをタップ → 自動でクローン取得</p>
+          </div>
+        </div>
+
+        <!-- Android PWA Share Target -->
+        <div class="px-5 py-4 space-y-2">
+          <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant mt-0.5">share</span>
+            <div>
+              <p class="text-sm font-bold">Android PWA 共有連携</p>
+              <p class="text-[11px] text-on-surface-variant mt-0.5">Chrome 112以上が必要。インストール後に一度再インストールが必要</p>
+            </div>
+          </div>
+          <div class="bg-surface-container rounded-xl px-4 py-3 space-y-1.5">
+            <p class="text-[11px] text-on-surface-variant">① 既にインストール済みの場合: 一度削除して再インストール（share_target登録のため）</p>
+            <p class="text-[11px] text-on-surface-variant">② 下の「ホーム画面に追加」から新規インストール</p>
+            <p class="text-[11px] text-on-surface-variant">③ メルカリ商品ページで共有ボタン →「フリモーラ」を選択</p>
+            <p class="text-[11px] font-bold text-on-surface-variant">※ 共有先に表示されない場合はクリップボード方式を使用してください</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
+      <div class="px-5 py-3 bg-surface-container-low">
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">アプリについて</p>
+      </div>
+      <div class="divide-y divide-surface-container">
+        <div class="flex items-center justify-between px-5 py-4">
+          <p class="text-sm font-bold">バージョン</p><span class="text-sm text-on-surface-variant">1.0.0</span>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4 hover:bg-surface-container cursor-pointer">
+          <p class="text-sm font-bold">プライバシーポリシー</p><span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4 hover:bg-surface-container cursor-pointer">
+          <p class="text-sm font-bold">利用規約</p><span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
+        </div>
+        <button onclick="installPWA()" class="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-container transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary">install_mobile</span>
+            <p class="text-sm font-bold text-primary">ホーム画面に追加 (PWA)</p>
+          </div>
+          <span class="material-symbols-outlined text-primary">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- 新規出品アシスタント Modal -->
+<div id="new-item-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('new-item-modal')">
+  <div class="modal-sheet max-h-[92vh] overflow-y-auto w-full" style="max-width:480px">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-headline font-bold text-lg">🏷️ 新規出品アシスタント</h3>
+      <button onclick="closeModal('new-item-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    <!-- Tab nav -->
+    <div class="flex border-b border-surface-container mb-4">
+      <button onclick="switchItemTab('price')" id="tab-price" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-primary text-primary">💰 価格</button>
+      <button onclick="switchItemTab('desc')" id="tab-desc" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">✏️ 説明文</button>
+      <button onclick="switchItemTab('schedule')" id="tab-schedule" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">📅 スケジュール</button>
+    </div>
+
+    <!-- Tab: 価格 -->
+    <div id="item-tab-price" class="space-y-4">
+      <div>
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">商品情報</p>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">商品タイトル</label>
+            <input id="ni-title" type="text" placeholder="例: ブランド名 商品名 サイズ"
+              class="mt-1 w-full bg-surface-container border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"/>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant">カテゴリ</label>
+              <select id="ni-category" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
+                <option>その他</option><option>ファッション</option><option>家電</option>
+                <option>本・漫画</option><option>おもちゃ</option><option>スポーツ</option>
+                <option>ゲーム</option><option>DVD / Blu-ray</option><option>CD</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant">商品状態</label>
+              <select id="ni-condition" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
+                <option>新品・未使用</option><option>未使用に近い</option>
+                <option>目立った傷や汚れなし</option><option>やや傷や汚れあり</option>
+                <option>傷や汚れあり</option><option>全体的に状態が悪い</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">💴 価格・送料</p>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">仕入れ値</label>
+            <div class="relative mt-1"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">¥</span>
+              <input id="ni-cost" type="number" value="0" oninput="calcItemPrice()"
+                class="w-full bg-surface-container border-none rounded-xl py-2.5 pl-8 pr-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"/>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">最低価格 <span class="text-error">*</span></label>
+            <div class="relative mt-1"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">¥</span>
+              <input id="ni-minprice" type="number" value="800" oninput="calcItemPrice()"
+                class="w-full bg-surface-container border-none rounded-xl py-2.5 pl-8 pr-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20"/>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="text-xs font-semibold text-on-surface-variant">バッファ（最低価格＋バッファ＝出品開始価格）</label>
+          <div class="flex gap-2 mt-1.5 flex-wrap items-center">
+            <button onclick="setBuffer(300)" class="ni-buf-btn px-3 py-1.5 rounded-full text-xs font-bold bg-surface-container text-on-surface-variant">+300円</button>
+            <button onclick="setBuffer(400)" class="ni-buf-btn px-3 py-1.5 rounded-full text-xs font-bold bg-primary text-white">+400円</button>
+            <button onclick="setBuffer(500)" class="ni-buf-btn px-3 py-1.5 rounded-full text-xs font-bold bg-surface-container text-on-surface-variant">+500円</button>
+            <button onclick="setBuffer(800)" class="ni-buf-btn px-3 py-1.5 rounded-full text-xs font-bold bg-surface-container text-on-surface-variant">+800円</button>
+            <div class="flex items-center gap-1">
+              <span class="text-[11px] text-on-surface-variant">カスタム:</span>
+              <input id="ni-buffer" type="number" value="400" oninput="calcItemPrice()"
+                class="w-16 bg-surface-container border-none rounded-lg px-2 py-1.5 text-xs font-bold outline-none"/>
+              <span class="text-[11px] text-on-surface-variant">円</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">メルカリ手数料</label>
+            <div class="flex items-center gap-2 mt-1">
+              <input id="ni-fee" type="number" value="10" oninput="calcItemPrice()"
+                class="w-16 bg-surface-container border-none rounded-lg px-3 py-2 text-sm font-bold outline-none"/>
+              <span class="text-sm text-on-surface-variant">%</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">送料（出品者負担）</label>
+            <div class="flex gap-1.5 mt-1 flex-wrap items-center">
+              <button onclick="setShipping(0)" class="ni-ship-btn px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-primary text-white">なし</button>
+              <button onclick="setShipping(230)" class="ni-ship-btn px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-surface-container text-on-surface-variant">ネコポス¥230</button>
+              <button onclick="setShipping(385)" class="ni-ship-btn px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-surface-container text-on-surface-variant">ゆうゆう¥385</button>
+              <button onclick="setShipping(450)" class="ni-ship-btn px-2.5 py-1.5 rounded-full text-[11px] font-bold bg-surface-container text-on-surface-variant">らくらく¥450</button>
+              <input id="ni-shipping" type="number" value="0" oninput="calcItemPrice()"
+                class="w-14 bg-surface-container border-none rounded-lg px-2 py-1.5 text-xs font-bold outline-none"/>
+              <span class="text-[11px] text-on-surface-variant">円</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 bg-primary/5 rounded-xl p-3 grid grid-cols-3 gap-2 text-center">
+          <div><p class="text-[10px] text-on-surface-variant">出品開始価格</p><p class="font-headline font-black text-primary" id="ni-startprice">¥1,200</p></div>
+          <div><p class="text-[10px] text-on-surface-variant">手数料</p><p class="font-bold text-sm" id="ni-feecalc">¥120</p></div>
+          <div><p class="text-[10px] text-on-surface-variant">利益（最低時）</p><p class="font-bold text-sm text-tertiary" id="ni-profit">¥370</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: 説明文 -->
+    <div id="item-tab-desc" class="hidden space-y-4">
+      <div>
+        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">AI説明文生成</p>
+        <p class="text-[11px] text-on-surface-variant mb-3">商品タイトルから紹介文を自動生成し、テンプレートと結合して完全な説明文を作ります。</p>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">商品タイトル</label>
+            <input id="ni-desc-title" type="text" placeholder="例: ブランド名 商品名 サイズ"
+              class="mt-1 w-full bg-surface-container border-none rounded-xl px-4 py-2.5 text-sm outline-none"/>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">カテゴリ</label>
+            <select id="ni-desc-category" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
+              <option>その他</option><option>ファッション</option><option>家電</option><option>本・漫画</option><option>ゲーム</option><option>DVD / Blu-ray</option><option>CD</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="generateItemDesc(event)"
+          class="bg-tertiary text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <span class="material-symbols-outlined text-sm">auto_awesome</span>AIで紹介文を生成
+        </button>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-on-surface-variant">AI生成 紹介文（編集可）</label>
+        <textarea id="ni-ai-text" rows="5" placeholder="ここにAI生成テキストが表示されます..."
+          class="mt-1 w-full bg-surface-container border-none rounded-xl px-4 py-3 text-sm outline-none resize-none"></textarea>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-on-surface-variant">テンプレートを選択</label>
+        <select id="ni-template-select" onchange="onTemplateSelect()"
+          class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
+          <option value="">（なし）</option>
+        </select>
+        <div id="ni-template-preview" class="mt-2 bg-surface-container rounded-xl px-4 py-3 text-xs text-on-surface-variant whitespace-pre-wrap max-h-32 overflow-y-auto hidden"></div>
+        <p class="text-[10px] text-on-surface-variant/70 mt-1.5">テンプレートは「設定」ページで追加・管理できます。</p>
+      </div>
+      <button onclick="combineDesc()"
+        class="bg-tertiary/10 text-tertiary px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 w-full justify-center">
+        <span class="material-symbols-outlined text-sm">merge</span>紹介文＋テンプレートを結合
+      </button>
+    </div>
+
+    <!-- Tab: スケジュール -->
+    <div id="item-tab-schedule" class="hidden space-y-4">
+      <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">📅 値下げスケジュール</p>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant">出品開始日</label>
+          <input id="ni-listed-at" type="date" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant">値下げ開始</label>
+          <div class="flex items-center gap-1 mt-1">
+            <input id="ni-discount-start" type="number" value="7"
+              class="w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm font-bold outline-none"/>
+            <span class="text-xs text-on-surface-variant flex-shrink-0">日後</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant">値下げ幅/頻度</label>
+          <div class="flex items-center gap-1 mt-1">
+            <input id="ni-discount-amount" type="number" value="100"
+              class="w-14 bg-surface-container border-none rounded-xl px-2 py-2.5 text-sm font-bold outline-none"/>
+            <span class="text-xs text-on-surface-variant">円/</span>
+            <input id="ni-discount-freq" type="number" value="1"
+              class="w-10 bg-surface-container border-none rounded-xl px-2 py-2.5 text-sm font-bold outline-none"/>
+            <span class="text-xs text-on-surface-variant">日</span>
+          </div>
+        </div>
+      </div>
+      <div class="bg-primary/5 rounded-xl p-4 text-[11px] text-on-surface-variant">
+        💡 「価格」タブで最低価格を入力すると、出品開始価格から最低価格まで自動で値下げスケジュールが計算されます。
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex gap-3 mt-6 pt-4 border-t border-surface-container">
+      <button onclick="closeModal('new-item-modal')" class="flex-1 py-3 rounded-full border border-surface-container-highest font-bold text-sm">キャンセル</button>
+      <button onclick="saveNewItem()" class="flex-1 bg-signature-gradient text-white py-3 rounded-full font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-lg">playlist_add</span>出品一覧に追加
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- テンプレート編集 Modal -->
+<div id="template-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('template-modal')">
+  <div class="modal-sheet w-full" style="max-width:480px">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-headline font-bold text-base" id="template-modal-title">テンプレートを追加</h3>
+      <button onclick="closeModal('template-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    <div class="mb-3">
+      <label class="text-xs font-semibold text-on-surface-variant">テンプレート名</label>
+      <input id="template-name-input" type="text" placeholder="例: 基本テンプレート"
+        class="mt-1 w-full bg-surface-container border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"/>
+    </div>
+    <p class="text-[11px] text-on-surface-variant mb-2">注意事項・発送方法など共通の固定テキストを入力してください。</p>
+    <textarea id="template-edit-area" rows="10"
+      class="w-full bg-surface-container border-none rounded-xl px-4 py-3 text-sm outline-none resize-none"></textarea>
+    <div class="flex gap-3 mt-4">
+      <button onclick="closeModal('template-modal')" class="flex-1 py-2.5 rounded-full border border-surface-container-highest font-bold text-sm">キャンセル</button>
+      <button onclick="saveTemplateFromModal()" class="flex-1 bg-signature-gradient text-white py-2.5 rounded-full font-bold text-sm">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav id="bottom-nav" class="fixed bottom-0 left-0 w-full z-40 glass border-t border-surface-container flex justify-around items-center h-[68px] pb-safe px-2 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+  <button onclick="navigate('home')" data-nav="home" class="nav-btn-mobile flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all active:scale-90 text-on-surface-variant">
+    <span class="material-symbols-outlined text-xl">home</span>
+    <span class="text-[9px] font-semibold tracking-tight">ホーム</span>
+  </button>
+  <button onclick="navigate('clone')" data-nav="clone" class="nav-btn-mobile flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all active:scale-90 text-on-surface-variant">
+    <span class="material-symbols-outlined text-xl">content_copy</span>
+    <span class="text-[9px] font-semibold tracking-tight">クローン</span>
+  </button>
+  <button onclick="navigate('listing')" data-nav="listing" class="nav-btn-mobile flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all active:scale-90 text-on-surface-variant">
+    <span class="material-symbols-outlined text-xl">add_box</span>
+    <span class="text-[9px] font-semibold tracking-tight">出品</span>
+  </button>
+  <button onclick="navigate('relist')" data-nav="relist" class="nav-btn-mobile flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all active:scale-90 text-on-surface-variant">
+    <span class="material-symbols-outlined text-xl">autorenew</span>
+    <span class="text-[9px] font-semibold tracking-tight">再出品</span>
+  </button>
+  <button onclick="navigate('schedule')" data-nav="schedule" class="nav-btn-mobile flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl transition-all active:scale-90 text-on-surface-variant">
+    <span class="material-symbols-outlined text-xl">calendar_month</span>
+    <span class="text-[9px] font-semibold tracking-tight">スケジュール</span>
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- NOTIFICATIONS MODAL -->
+<div id="notif-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('notif-modal')">
+  <div class="modal-sheet max-h-[80vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-headline font-bold text-lg">通知</h3>
+      <button onclick="closeModal('notif-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    <div class="space-y-3" id="notif-list"></div>
+  </div>
+</div>
+
+<script>
+// ── Data (localStorage-driven, no hardcoded samples) ──
+let ALERTS = [];
+let ACTIVITIES = [];
+let QUEUE = [];
+let SCHEDULE_DATA = {};
+let NOTIFICATIONS = [];
+
+function loadStorageData() {
+  try {
+    ALERTS      = JSON.parse(localStorage.getItem('furimora_alerts') || '[]');
+    ACTIVITIES  = JSON.parse(localStorage.getItem('furimora_activities') || '[]');
+    QUEUE       = JSON.parse(localStorage.getItem('furimora_queue') || '[]');
+    SCHEDULE_DATA = JSON.parse(localStorage.getItem('furimora_schedule') || '{}');
+    NOTIFICATIONS = JSON.parse(localStorage.getItem('furimora_notifications') || '[]');
+  } catch { ALERTS=[]; ACTIVITIES=[]; QUEUE=[]; SCHEDULE_DATA={}; NOTIFICATIONS=[]; }
+}
+
+function saveStorageData() {
+  localStorage.setItem('furimora_alerts',      JSON.stringify(ALERTS));
+  localStorage.setItem('furimora_activities',  JSON.stringify(ACTIVITIES));
+  localStorage.setItem('furimora_queue',        JSON.stringify(QUEUE));
+  localStorage.setItem('furimora_schedule',     JSON.stringify(SCHEDULE_DATA));
+  localStorage.setItem('furimora_notifications',JSON.stringify(NOTIFICATIONS));
+}
+
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem('furimora_stats') || '{}');
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('stat-total',    s.total    != null ? String(s.total)    : '0');
+    set('stat-discount', s.discount != null ? String(s.discount) : '0');
+    set('stat-relist',   s.relist   != null ? String(s.relist)   : '0');
+    set('stat-profit',   s.profit   != null ? '¥' + Number(s.profit).toLocaleString() : '¥0');
+    const profile = JSON.parse(localStorage.getItem('furimora_profile') || '{}');
+    const name = profile.name || 'ゲスト';
+    const plan = profile.plan || '無料プラン';
+    ['profile-name','settings-profile-name'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=name; });
+    ['profile-plan','settings-plan-name'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=plan; });
+  } catch {}
+}
+
+// ── State ──
+let calYear = 2026, calMonth = 2, selectedCalDay = 26;
+let selectedTone = '丁寧';
+let clonedData = {};
+let pwaPrompt = null;
+let downloadDirHandle = null;
+
+// ── 在庫・出品管理 ──
+let ITEMS = [];
+let itemFilter = 'all';
+let niEditId = null;
+
+const DEFAULT_TEMPLATE_BODY = `◆ 商品の状態\n丁寧に使用しておりましたが、素人検品のためご了承ください。\n\n◆ 発送について\n・ご購入確定後2〜3日以内に発送いたします\n・丁寧に梱包してお届けします\n・ご不明な点はお気軽にコメントください\n\n◆ その他\n・他でも出品中のため、売り切れの際はご容赦ください\n・値下げ交渉もお気軽にどうぞ`;
+
+let niTemplateEditId = null;
+
+function loadTemplates() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('furimora_templates') || 'null');
+    if (saved) return saved;
+  } catch {}
+  // 初回: デフォルトテンプレートを作成
+  const defaults = [{ id: 'tpl_default', name: 'デフォルト', body: DEFAULT_TEMPLATE_BODY }];
+  localStorage.setItem('furimora_templates', JSON.stringify(defaults));
+  return defaults;
+}
+
+function saveTemplatesData(templates) {
+  localStorage.setItem('furimora_templates', JSON.stringify(templates));
+}
+
+function renderTemplatesList() {
+  const el = document.getElementById('templates-list');
+  if (!el) return;
+  const templates = loadTemplates();
+  if (!templates.length) {
+    el.innerHTML = `<div class="px-5 py-4 text-xs text-on-surface-variant/60 text-center">テンプレートがありません。「追加」で作成してください。</div>`;
+    return;
+  }
+  el.innerHTML = templates.map(t => `
+    <div class="px-5 py-3.5 flex items-center gap-3">
+      <span class="material-symbols-outlined text-on-surface-variant text-lg">article</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold truncate">${t.name}</p>
+        <p class="text-[11px] text-on-surface-variant truncate">${t.body.replace(/\n/g,' ').slice(0,60)}…</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="openTemplateEditor('${t.id}')" class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full hover:bg-primary/20 transition-colors">編集</button>
+        <button onclick="deleteTemplate('${t.id}')" class="text-xs font-bold text-error bg-error/10 px-2.5 py-1 rounded-full hover:bg-error/20 transition-colors">削除</button>
+      </div>
+    </div>`).join('');
+}
+
+function openTemplateEditor(idOrNull) {
+  niTemplateEditId = idOrNull;
+  if (idOrNull) {
+    const templates = loadTemplates();
+    const t = templates.find(x => x.id === idOrNull);
+    if (!t) return;
+    document.getElementById('template-modal-title').textContent = 'テンプレートを編集';
+    document.getElementById('template-name-input').value = t.name;
+    document.getElementById('template-edit-area').value = t.body;
+  } else {
+    document.getElementById('template-modal-title').textContent = 'テンプレートを追加';
+    document.getElementById('template-name-input').value = '';
+    document.getElementById('template-edit-area').value = DEFAULT_TEMPLATE_BODY;
+  }
+  document.getElementById('template-modal').classList.add('open');
+}
+
+function saveTemplateFromModal() {
+  const name = document.getElementById('template-name-input').value.trim();
+  const body = document.getElementById('template-edit-area').value.trim();
+  if (!name) { showToast('テンプレート名を入力してください'); return; }
+  if (!body) { showToast('テンプレート内容を入力してください'); return; }
+  const templates = loadTemplates();
+  if (niTemplateEditId) {
+    const idx = templates.findIndex(x => x.id === niTemplateEditId);
+    if (idx >= 0) templates[idx] = { ...templates[idx], name, body };
+  } else {
+    templates.push({ id: 'tpl_' + Date.now(), name, body });
+  }
+  saveTemplatesData(templates);
+  renderTemplatesList();
+  populateTemplateSelect();
+  closeModal('template-modal');
+  showToast('テンプレートを保存しました');
+}
+
+function deleteTemplate(id) {
+  if (!confirm('このテンプレートを削除しますか？')) return;
+  const templates = loadTemplates().filter(t => t.id !== id);
+  saveTemplatesData(templates);
+  renderTemplatesList();
+  populateTemplateSelect();
+  showToast('削除しました');
+}
+
+function populateTemplateSelect() {
+  const sel = document.getElementById('ni-template-select');
+  if (!sel) return;
+  const templates = loadTemplates();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">（なし）</option>' +
+    templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  if (prev && templates.find(t => t.id === prev)) sel.value = prev;
+  onTemplateSelect();
+}
+
+function onTemplateSelect() {
+  const sel = document.getElementById('ni-template-select');
+  const preview = document.getElementById('ni-template-preview');
+  if (!sel || !preview) return;
+  if (!sel.value) {
+    preview.classList.add('hidden');
+    preview.textContent = '';
+    return;
+  }
+  const templates = loadTemplates();
+  const t = templates.find(x => x.id === sel.value);
+  if (t) {
+    preview.textContent = t.body;
+    preview.classList.remove('hidden');
+  }
+}
+
+function loadItems() {
+  try { ITEMS = JSON.parse(localStorage.getItem('furimora_items') || '[]'); } catch { ITEMS = []; }
+}
+function saveItems() { localStorage.setItem('furimora_items', JSON.stringify(ITEMS)); }
+
+function getDaysSinceListed(listedAt) {
+  if (!listedAt) return 0;
+  return Math.max(0, Math.floor((Date.now() - new Date(listedAt).getTime()) / 86400000));
+}
+
+function setItemFilter(f) {
+  itemFilter = f;
+  document.querySelectorAll('.item-filter-btn').forEach(b => {
+    const on = b.id === 'filter-' + f;
+    b.classList.toggle('bg-primary', on); b.classList.toggle('text-white', on);
+    b.classList.toggle('bg-surface-container', !on); b.classList.toggle('text-on-surface-variant', !on);
+  });
+  renderItems();
+}
+
+function renderItems() {
+  loadItems();
+  const search = (document.getElementById('items-search')?.value || '').toLowerCase();
+  const filtered = ITEMS.filter(item => {
+    if (search && !item.title.toLowerCase().includes(search)) return false;
+    const days = getDaysSinceListed(item.listedAt);
+    if (itemFilter === 'active') return item.status === 'active';
+    if (itemFilter === 'over30') return item.status === 'active' && days >= 30;
+    if (itemFilter === 'over60') return item.status === 'active' && days >= 60;
+    if (itemFilter === 'relisted') return item.status === 'relisted';
+    if (itemFilter === 'sold') return item.status === 'sold';
+    return true;
+  });
+
+  const active = ITEMS.filter(i => i.status === 'active');
+  const over30 = active.filter(i => getDaysSinceListed(i.listedAt) >= 30).length;
+  const over60 = active.filter(i => getDaysSinceListed(i.listedAt) >= 60).length;
+  const avgDays = active.length ? Math.round(active.reduce((s,i) => s + getDaysSinceListed(i.listedAt), 0) / active.length) : 0;
+  const set = (id, v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
+  set('items-stat-total', ITEMS.length);
+  set('items-stat-active', active.length);
+  set('items-stat-over30', over30);
+  set('items-stat-over60', over60);
+  const avgEl = document.getElementById('items-stat-avg');
+  if (avgEl) avgEl.innerHTML = `${avgDays}<span class="text-sm font-medium">日</span>`;
+
+  const el = document.getElementById('items-list');
+  if (!el) return;
+  if (!filtered.length) {
+    el.innerHTML = `<div class="text-center py-12 text-on-surface-variant/50 bg-surface-container-lowest rounded-lg">
+      <span class="material-symbols-outlined text-4xl block mb-2">inventory_2</span>
+      <p class="text-sm font-medium">${ITEMS.length ? '該当する商品はありません' : '商品がまだ登録されていません'}</p>
+      <p class="text-xs mt-1">${ITEMS.length ? '' : '「新規出品」ボタンから商品を追加してください'}</p>
+    </div>`; return;
+  }
+  el.innerHTML = filtered.map(item => {
+    const days = getDaysSinceListed(item.listedAt);
+    const daysBadge = days >= 60 ? `<span class="text-[10px] font-bold text-error">● ${days}日</span>`
+      : days >= 30 ? `<span class="text-[10px] font-bold text-primary">▲ ${days}日</span>`
+      : `<span class="text-[10px] text-on-surface-variant">${days}日</span>`;
+    const statusMap = { active:'出品中', relisted:'再出品済', sold:'売却済', pending:'準備中' };
+    const statusCls = { active:'bg-tertiary-container text-on-tertiary-container', relisted:'bg-primary/10 text-primary', sold:'bg-surface-container-highest text-on-surface-variant', pending:'bg-surface-container text-on-surface-variant' };
+    const thumb = item.images?.[0]
+      ? `<img src="${item.images[0]}" class="w-full h-full object-cover" onerror="this.style.display='none'">`
+      : `<span class="material-symbols-outlined text-2xl text-on-surface-variant/30">image</span>`;
+    return `<div class="bg-surface-container-lowest rounded-lg p-3.5 flex items-center gap-3 shadow-sm">
+      <div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0 flex items-center justify-center">${thumb}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-1 mb-0.5">
+          <h4 class="text-sm font-bold leading-snug line-clamp-2 flex-1">${item.title}</h4>
+          <span class="${statusCls[item.status]||''} text-[10px] font-bold px-2 py-0.5 rounded-sm flex-shrink-0 ml-1">${statusMap[item.status]||''}</span>
+        </div>
+        <p class="text-[11px] text-on-surface-variant">${item.condition||''}</p>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="font-headline font-bold text-base text-primary">¥${Number(item.currentPrice||0).toLocaleString()}</span>
+          ${daysBadge}
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5 flex-shrink-0">
+        <button onclick="relistItemFromList(${item.id})" class="text-[11px] font-bold text-white bg-signature-gradient px-3 py-1.5 rounded-full whitespace-nowrap">再出品</button>
+        <button onclick="discountItemFromList(${item.id})" class="text-[11px] font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full whitespace-nowrap">値下げ</button>
+        <button onclick="openItemMenu(${item.id})" class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-3 py-1.5 rounded-full">・・・</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function relistItemFromList(id) {
+  loadItems();
+  const item = ITEMS.find(i => i.id === id); if (!item) return;
+  item.status = 'active';
+  item.listedAt = new Date().toISOString().slice(0,10);
+  item.currentPrice = item.startPrice || item.currentPrice;
+  item.relistCount = (item.relistCount||0) + 1;
+  saveItems();
+  ACTIVITIES.unshift({ name: item.title, action: '再出品しました', time: 'たった今', status: '出品中', type: 'active', emoji: '🔄' });
+  saveStorageData(); renderItems();
+  showToast(`${item.title.substring(0,20)} を再出品しました`);
+}
+
+function discountItemFromList(id) {
+  loadItems();
+  const item = ITEMS.find(i => i.id === id); if (!item) return;
+  const amount = item.discountAmount || 100;
+  const newPrice = Math.max(Number(item.minPrice||0), Number(item.currentPrice||0) - amount);
+  if (newPrice === Number(item.currentPrice)) { showToast('最低価格に達しています'); return; }
+  const old = item.currentPrice;
+  item.currentPrice = newPrice;
+  saveItems(); renderItems();
+  showToast(`¥${Number(old).toLocaleString()} → ¥${Number(newPrice).toLocaleString()} に値下げしました`);
+}
+
+function openItemMenu(id) {
+  loadItems();
+  const item = ITEMS.find(i => i.id === id); if (!item) return;
+  const choice = confirm(`「${item.title.substring(0,30)}」\n\nOK → 売却済みにする\nキャンセル → 削除する`);
+  if (choice) {
+    item.status = 'sold'; saveItems(); renderItems(); showToast('売却済みにしました');
+  } else if (confirm('削除しますか？')) {
+    ITEMS = ITEMS.filter(i => i.id !== id); saveItems(); renderItems(); showToast('削除しました');
+  }
+}
+
+function openNewItemModal(draftData) {
+  niEditId = null;
+  document.getElementById('ni-title').value = draftData?.title || '';
+  document.getElementById('ni-cost').value = 0;
+  document.getElementById('ni-minprice').value = 800;
+  document.getElementById('ni-buffer').value = 400;
+  document.getElementById('ni-fee').value = 10;
+  document.getElementById('ni-shipping').value = 0;
+  document.getElementById('ni-listed-at').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ni-discount-start').value = 7;
+  document.getElementById('ni-discount-amount').value = 100;
+  document.getElementById('ni-discount-freq').value = 1;
+  document.getElementById('ni-desc-title').value = draftData?.title || '';
+  document.getElementById('ni-ai-text').value = draftData?.description || '';
+  populateTemplateSelect();
+  if (draftData?.category) {
+    const sel = document.getElementById('ni-category');
+    [...sel.options].forEach(o => { if (draftData.category.includes(o.value) || o.value.includes(draftData.category)) sel.value = o.value; });
+  }
+  if (draftData?.condition) {
+    const sel = document.getElementById('ni-condition');
+    [...sel.options].forEach(o => { if (o.value === draftData.condition) sel.value = o.value; });
+  }
+  document.getElementById('new-item-modal').dataset.images = JSON.stringify(draftData?.images || []);
+  switchItemTab('price'); calcItemPrice();
+  document.getElementById('new-item-modal').classList.add('open');
+}
+
+function switchItemTab(tab) {
+  ['price','desc','schedule'].forEach(t => {
+    document.getElementById('item-tab-'+t)?.classList.toggle('hidden', t !== tab);
+    const btn = document.getElementById('tab-'+t);
+    if (btn) {
+      btn.classList.toggle('border-primary', t===tab); btn.classList.toggle('text-primary', t===tab);
+      btn.classList.toggle('border-transparent', t!==tab); btn.classList.toggle('text-on-surface-variant', t!==tab);
+    }
+  });
+}
+
+function setBuffer(amount) {
+  document.getElementById('ni-buffer').value = amount;
+  document.querySelectorAll('.ni-buf-btn').forEach(b => {
+    const on = b.textContent.trim() === '+'+amount+'円';
+    b.classList.toggle('bg-primary',on); b.classList.toggle('text-white',on);
+    b.classList.toggle('bg-surface-container',!on); b.classList.toggle('text-on-surface-variant',!on);
+  });
+  calcItemPrice();
+}
+
+function setShipping(amount) {
+  document.getElementById('ni-shipping').value = amount;
+  document.querySelectorAll('.ni-ship-btn').forEach(b => {
+    const val = b.textContent.includes('¥') ? parseInt(b.textContent.split('¥')[1]) : 0;
+    const on = val === amount;
+    b.classList.toggle('bg-primary',on); b.classList.toggle('text-white',on);
+    b.classList.toggle('bg-surface-container',!on); b.classList.toggle('text-on-surface-variant',!on);
+  });
+  calcItemPrice();
+}
+
+function calcItemPrice() {
+  const min = parseInt(document.getElementById('ni-minprice')?.value)||0;
+  const buf = parseInt(document.getElementById('ni-buffer')?.value)||0;
+  const fee = parseInt(document.getElementById('ni-fee')?.value)||10;
+  const ship = parseInt(document.getElementById('ni-shipping')?.value)||0;
+  const cost = parseInt(document.getElementById('ni-cost')?.value)||0;
+  const start = min + buf;
+  const feeAmt = Math.round(start * fee / 100);
+  const profit = min - Math.round(min * fee / 100) - ship - cost;
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('ni-startprice','¥'+start.toLocaleString());
+  set('ni-feecalc','¥'+feeAmt.toLocaleString());
+  set('ni-profit','¥'+profit.toLocaleString());
+}
+
+async function generateItemDesc(e) {
+  const title = document.getElementById('ni-desc-title').value.trim();
+  if (!title) { showToast('タイトルを入力してください'); return; }
+  const btn = e.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<span class="material-symbols-outlined text-sm" style="animation:spin .8s linear infinite">progress_activity</span>生成中...';
+  btn.disabled = true;
+  await new Promise(r => setTimeout(r, 800));
+  const category = document.getElementById('ni-desc-category').value;
+  const tag = title.replace(/[\s　]+/g,'');
+  document.getElementById('ni-ai-text').value = `${title}を出品します。\n不要になったためお譲りします。大切に使用しておりましたが、素人検品のためご了承ください。\n\n#${tag} #${category.replace(/\s*[/／]\s*/g,'').replace(/\s+/g,'')} #メルカリ`;
+  btn.innerHTML = orig; btn.disabled = false;
+  showToast('紹介文を生成しました');
+}
+
+function combineDesc() {
+  const ai = document.getElementById('ni-ai-text').value.trim();
+  if (!ai) { showToast('先に紹介文を生成してください'); return; }
+  const selId = document.getElementById('ni-template-select')?.value;
+  if (!selId) { showToast('テンプレートを選択してください'); return; }
+  const templates = loadTemplates();
+  const t = templates.find(x => x.id === selId);
+  if (!t) { showToast('テンプレートが見つかりません'); return; }
+  document.getElementById('ni-ai-text').value = ai + '\n\n' + t.body;
+  showToast('テンプレートと結合しました');
+}
+
+
+function saveNewItem() {
+  const title = document.getElementById('ni-title').value.trim();
+  if (!title) { showToast('商品タイトルを入力してください'); switchItemTab('price'); return; }
+  const min = parseInt(document.getElementById('ni-minprice').value)||0;
+  const buf = parseInt(document.getElementById('ni-buffer').value)||0;
+  const startPrice = min + buf;
+  const images = JSON.parse(document.getElementById('new-item-modal').dataset.images||'[]');
+  const item = {
+    id: niEditId || Date.now(),
+    title, images,
+    category: document.getElementById('ni-category').value,
+    condition: document.getElementById('ni-condition').value,
+    currentPrice: startPrice, startPrice, minPrice: min,
+    costPrice: parseInt(document.getElementById('ni-cost').value)||0,
+    fee: parseInt(document.getElementById('ni-fee').value)||10,
+    shippingCost: parseInt(document.getElementById('ni-shipping').value)||0,
+    description: document.getElementById('ni-ai-text').value,
+    status: 'active',
+    listedAt: document.getElementById('ni-listed-at').value || new Date().toISOString().slice(0,10),
+    discountStartDays: parseInt(document.getElementById('ni-discount-start').value)||7,
+    discountAmount: parseInt(document.getElementById('ni-discount-amount').value)||100,
+    discountFreqDays: parseInt(document.getElementById('ni-discount-freq').value)||1,
+    relistCount: 0, createdAt: new Date().toISOString(),
+  };
+  loadItems();
+  if (niEditId) { const idx=ITEMS.findIndex(i=>i.id===niEditId); if(idx>=0) ITEMS[idx]=item; }
+  else ITEMS.unshift(item);
+  saveItems();
+  const s = JSON.parse(localStorage.getItem('furimora_stats')||'{}');
+  if (!niEditId) s.total = (s.total||0)+1;
+  localStorage.setItem('furimora_stats', JSON.stringify(s)); loadStats();
+  ACTIVITIES.unshift({ name: title, action: '出品一覧に追加しました', time: 'たった今', status: '出品中', type: 'active', emoji: '🏷️' });
+  saveStorageData();
+  closeModal('new-item-modal'); navigate('relist');
+  showToast(`「${title.substring(0,20)}」を出品一覧に追加しました`);
+}
+
+function exportItemsCSV() {
+  loadItems();
+  if (!ITEMS.length) { showToast('エクスポートするデータがありません'); return; }
+  const hd = ['ID','タイトル','カテゴリ','状態','現在価格','最低価格','仕入れ値','送料','手数料%','出品日','経過日数','ステータス'];
+  const rows = ITEMS.map(i=>[i.id,i.title,i.category,i.condition,i.currentPrice,i.minPrice,i.costPrice,i.shippingCost,i.fee,i.listedAt,getDaysSinceListed(i.listedAt),i.status]);
+  const csv = [hd,...rows].map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = `furimora_items_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); showToast('CSVをエクスポートしました');
+}
+
+function renderListingDrafts() {
+  const drafts = JSON.parse(localStorage.getItem('furimora_drafts')||'[]');
+  const el = document.getElementById('listing-drafts-list');
+  const ct = document.getElementById('listing-drafts-count');
+  if (!el) return;
+  if (ct) ct.textContent = drafts.length + '件';
+  if (!drafts.length) {
+    el.innerHTML = `<div class="text-center py-6 text-on-surface-variant/50 text-sm">クローンタブで商品を保存すると表示されます</div>`; return;
+  }
+  el.innerHTML = drafts.map((d,i) => {
+    const thumb = d.thumbnailUrl||d.images?.[0]
+      ? `<img src="${d.thumbnailUrl||d.images[0]}" class="w-full h-full object-cover" onerror="this.style.display='none'">`
+      : `<span class="material-symbols-outlined text-lg text-on-surface-variant/40">image</span>`;
+    return `<div class="flex items-center gap-3 px-4 py-3">
+      <div class="w-10 h-10 rounded-md bg-surface-container flex-shrink-0 flex items-center justify-center overflow-hidden">${thumb}</div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-bold truncate">${d.title||'（タイトルなし）'}</p>
+        <p class="text-[11px] text-on-surface-variant">${d.price ? '¥'+Number(d.price).toLocaleString() : '価格未設定'}</p>
+      </div>
+      <button onclick="openNewItemModal(${JSON.stringify(d).replace(/"/g,'&quot;')})"
+        class="flex-shrink-0 text-[11px] font-bold text-white bg-signature-gradient px-3 py-1.5 rounded-full">
+        出品登録
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// ── ダウンロードフォルダ設定 ──
+async function selectDownloadFolder() {
+  if (!window.showDirectoryPicker) {
+    showToast('このブラウザはフォルダ選択に対応していません');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    downloadDirHandle = handle;
+    await _saveHandleToIDB(handle);
+    updateDownloadFolderDisplay(handle.name);
+    showToast('ダウンロード先: ' + handle.name);
+  } catch (err) {
+    if (err.name !== 'AbortError') showToast('フォルダの選択に失敗しました');
+  }
+}
+
+function updateDownloadFolderDisplay(name) {
+  const el = document.getElementById('download-folder-name');
+  if (!el) return;
+  el.textContent = name ? `${name}（選択済み）` : '未設定（ブラウザのダウンロードフォルダ）';
+}
+
+function _idb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('furimora_db', 1);
+    req.onupgradeneeded = e => { try { e.target.result.createObjectStore('handles'); } catch {} };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function _saveHandleToIDB(handle) {
+  try {
+    const db = await _idb();
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'downloadDir');
+    return new Promise(r => { tx.oncomplete = r; });
+  } catch {}
+}
+
+async function _loadHandleFromIDB() {
+  try {
+    const db = await _idb();
+    const tx = db.transaction('handles', 'readonly');
+    return new Promise(resolve => {
+      const req = tx.objectStore('handles').get('downloadDir');
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+}
+
+// ── Navigation ──
+function navigate(page, navOpts = {}) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + page);
+  if (target) target.classList.add('active');
+  // Desktop sidebar
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    const on = btn.dataset.nav === page;
+    btn.classList.toggle('bg-primary-fixed', on);
+    btn.classList.toggle('text-primary', on);
+    btn.classList.toggle('font-bold', on);
+    btn.classList.toggle('text-on-surface-variant', !on);
+    const icon = btn.querySelector('.material-symbols-outlined');
+    icon && (on ? icon.classList.add('icon-filled') : icon.classList.remove('icon-filled'));
+  });
+  // Mobile bottom nav
+  document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
+    const on = btn.dataset.nav === page;
+    btn.classList.toggle('text-primary', on);
+    btn.classList.toggle('text-on-surface-variant', !on);
+    const icon = btn.querySelector('.material-symbols-outlined');
+    icon && (on ? icon.classList.add('icon-filled') : icon.classList.remove('icon-filled'));
+  });
+  if (page === 'clone') {
+    resetClone();
+    renderDrafts();
+    const deep = navOpts.deepLinkUrl;
+    if (deep) {
+      const input = document.getElementById('clone-url-input');
+      if (input) input.value = deep;
+    } else {
+      checkClipboardForMercari();
+    }
+  }
+  if (page === 'relist') renderItems();
+  if (page === 'listing') renderListingDrafts();
+  if (page === 'settings') renderTemplatesList();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Modals ──
+function showNotifications() {
+  renderNotifications();
+  document.getElementById('notif-modal').classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── Render Notifications ──
+function renderNotifications() {
+  const el = document.getElementById('notif-list');
+  if (!el) return;
+  if (!NOTIFICATIONS.length) {
+    el.innerHTML = `<div class="text-center py-10 text-on-surface-variant/50">
+      <span class="material-symbols-outlined text-4xl block mb-2">notifications_none</span>
+      <p class="text-sm font-medium">通知はありません</p>
+    </div>`;
+    return;
+  }
+  const iconMap = { discount:'notifications_active', check:'check_circle', like:'favorite', info:'info' };
+  const colorMap = { discount:'text-error bg-error-container/20', check:'text-tertiary bg-surface-container-low', like:'text-primary bg-surface-container-low', info:'text-primary bg-surface-container-low' };
+  el.innerHTML = NOTIFICATIONS.slice(0,20).map(n => {
+    const type = n.type || 'info';
+    return `<div class="flex gap-3 p-3 ${colorMap[type]||colorMap.info} rounded-xl">
+      <span class="material-symbols-outlined ${colorMap[type]?.split(' ')[0]||'text-primary'} text-xl mt-0.5 flex-shrink-0">${iconMap[type]||'info'}</span>
+      <div>
+        <p class="text-sm font-bold">${n.title}</p>
+        <p class="text-[11px] text-on-surface-variant">${n.body}</p>
+        <p class="text-[10px] text-on-surface-variant mt-1">${n.time || ''}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Add notification helper ──
+function pushNotification(title, body, type='info') {
+  NOTIFICATIONS.unshift({ title, body, type, time: 'たった今' });
+  NOTIFICATIONS = NOTIFICATIONS.slice(0, 50);
+  saveStorageData();
+  // バッジ表示
+  document.querySelectorAll('.notif-badge').forEach(b => b.classList.remove('hidden'));
+}
+
+// ── Empty state helper ──
+function emptyState(icon, msg, sub='') {
+  return `<div class="col-span-2 text-center py-10 text-on-surface-variant/50">
+    <span class="material-symbols-outlined text-4xl block mb-2">${icon}</span>
+    <p class="text-sm font-medium">${msg}</p>
+    ${sub ? `<p class="text-xs mt-1">${sub}</p>` : ''}
+  </div>`;
+}
+
+// ── Render Alerts ──
+function renderAlerts() {
+  const el = document.getElementById('alert-list');
+  if (!el) return;
+  if (!ALERTS.length) {
+    el.innerHTML = emptyState('notifications_off', '値下げアラートはありません', 'クローン機能で商品を登録すると表示されます');
+    return;
+  }
+  el.innerHTML = ALERTS.map(a => `
+    <div class="bg-error-container/15 p-4 rounded-lg flex gap-3 items-center">
+      <div class="w-14 h-14 rounded-md bg-surface-container flex items-center justify-center text-2xl flex-shrink-0">${a.emoji || '📦'}</div>
+      <div class="flex-1 min-w-0">
+        <h4 class="text-sm font-bold truncate">${a.name}</h4>
+        <p class="text-[10px] text-on-surface-variant mt-0.5">閲覧: ${a.views ?? '—'} • いいね: ${a.likes ?? '—'}</p>
+      </div>
+      <button onclick="applyDiscount(this,'${a.name}',${a.discount})"
+        class="bg-surface-container-lowest text-primary text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors flex-shrink-0">
+        ${a.discount}%OFF
+      </button>
+    </div>`).join('');
+}
+
+function applyDiscount(btn, name, pct) {
+  btn.textContent = '✓ 適用';
+  btn.disabled = true;
+  btn.className = btn.className.replace('text-primary', 'text-tertiary');
+  showToast(`${name} を ${pct}%値下げしました`);
+}
+
+// ── Render Activities ──
+function renderActivities() {
+  const el = document.getElementById('activity-list');
+  if (!el) return;
+  if (!ACTIVITIES.length) {
+    el.innerHTML = `<div class="text-center py-8 text-on-surface-variant/50">
+      <span class="material-symbols-outlined text-4xl block mb-2">history</span>
+      <p class="text-sm font-medium">アクティビティはまだありません</p>
+      <p class="text-xs mt-1">クローンや値下げを行うと履歴が表示されます</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = ACTIVITIES.map(a => `
+    <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between card-interactive">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-md bg-surface-container flex items-center justify-center text-xl flex-shrink-0">${a.emoji}</div>
+        <div>
+          <p class="text-sm font-bold">${a.name}</p>
+          <p class="text-[10px] text-on-surface-variant mt-0.5">${a.time} • <span class="${a.type==='active'?'text-tertiary':'text-primary'}">${a.action}</span></p>
+        </div>
+      </div>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-sm flex-shrink-0 ${a.type==='active'?'bg-tertiary-container text-on-tertiary-container':'bg-surface-dim text-on-surface-variant'}">${a.status}</span>
+    </div>`).join('');
+}
+
+// ── Render Queue ──
+function renderQueue() {
+  const el = document.getElementById('relist-queue');
+  const countEl = document.getElementById('relist-queue-count');
+  if (!el) return;
+  if (countEl) countEl.textContent = `全 ${QUEUE.length} 件`;
+  if (!QUEUE.length) {
+    el.innerHTML = `<div class="text-center py-12 text-on-surface-variant/50">
+      <span class="material-symbols-outlined text-4xl block mb-2">inventory_2</span>
+      <p class="text-sm font-medium">再出品待ちの商品はありません</p>
+      <p class="text-xs mt-1">クローン機能で商品を登録すると表示されます</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = QUEUE.map(item => `
+    <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-3 shadow-sm">
+      <div class="w-16 h-16 rounded-md bg-surface-container flex items-center justify-center text-2xl flex-shrink-0">${item.emoji}</div>
+      <div class="flex-grow min-w-0">
+        <div class="flex justify-between items-start mb-1">
+          <h4 class="text-sm font-bold truncate pr-3">${item.name}</h4>
+          <span class="flex-shrink-0 px-2 py-0.5 rounded-sm text-[10px] font-bold ${item.type==='active'?'bg-tertiary-container text-on-tertiary-container':'bg-surface-container-highest text-on-surface-variant'}">${item.status}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-on-surface-variant">
+          <span class="font-headline font-semibold text-on-surface">${item.price}</span>
+          <span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-xs">trending_down</span>${item.note}</span>
+        </div>
+        <p class="text-[10px] text-on-surface-variant/60 mt-1">最終更新: ${item.updated}</p>
+      </div>
+      <button onclick="relistItem(this,'${item.name}')"
+        class="bg-signature-gradient text-white text-[11px] font-bold px-3 py-2 rounded-full hover:scale-105 transition-transform active:scale-95 flex-shrink-0">
+        今すぐ再出品
+      </button>
+    </div>`).join('');
+}
+
+function relistItem(btn, name) {
+  btn.textContent = '✓ 予約済み';
+  btn.disabled = true;
+  btn.style.background = '#e2e2e2';
+  btn.style.color = '#5f3e3b';
+  // アクティビティに記録
+  ACTIVITIES.unshift({ name, action: '再出品を予約しました', time: 'たった今', status: '出品中', type: 'active', emoji: '🔄' });
+  saveStorageData();
+  // 再出品済みカウント更新
+  const done = document.getElementById('relist-done-count');
+  if (done) done.textContent = String((parseInt(done.textContent)||0) + 1);
+  updateRelistProgress();
+  showToast(`${name} を再出品予約しました`);
+}
+function relistAll() {
+  QUEUE.forEach(item => {
+    ACTIVITIES.unshift({ name: item.name, action: '一括再出品を予約しました', time: 'たった今', status: '出品中', type: 'active', emoji: '🔄' });
+  });
+  saveStorageData();
+  showToast('全アイテムを一括再出品キューに追加しました');
+}
+function updateRelistProgress() {
+  try {
+    const s = JSON.parse(localStorage.getItem('furimora_stats') || '{}');
+    const total = s.relist || 0;
+    const done = parseInt(document.getElementById('relist-done-count')?.textContent || '0');
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const el = document.getElementById('relist-progress');
+    if (el) el.textContent = pct + '%';
+  } catch {}
+}
+
+// ── Calendar ──
+function renderCalendar() {
+  const grid = document.getElementById('calendar-grid');
+  const label = document.getElementById('cal-month-label');
+  if (!grid || !label) return;
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  label.textContent = `${calYear}年 ${months[calMonth]}`;
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const offset = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  let html = '';
+  for (let i = 0; i < offset; i++) html += '<div></div>';
+  const today = new Date();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = today.getFullYear()===calYear && today.getMonth()===calMonth && today.getDate()===d;
+    const isSel = selectedCalDay === d;
+    const key = `${calYear}-${calMonth+1}-${d}`;
+    const hasEv = SCHEDULE_DATA[key]?.length > 0;
+    let cls = 'aspect-square flex flex-col items-center justify-center rounded-xl text-sm cursor-pointer transition-all active:scale-90 ';
+    if (isSel) cls += 'bg-primary text-white font-bold shadow-md shadow-primary/25 scale-105 ';
+    else if (isToday) cls += 'bg-primary/10 text-primary font-bold ';
+    else cls += 'hover:bg-surface-container ';
+    html += `<button class="${cls}" onclick="selectDay(${d})">
+      <span>${d}</span>
+      ${hasEv ? `<span class="w-1 h-1 rounded-full mt-0.5 ${isSel?'bg-white':'bg-primary'}"></span>` : ''}
+    </button>`;
+  }
+  grid.innerHTML = html;
+  renderScheduleForDay();
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  selectedCalDay = 1;
+  renderCalendar();
+}
+
+function selectDay(d) { selectedCalDay = d; renderCalendar(); }
+
+function renderScheduleForDay() {
+  const el = document.getElementById('schedule-list');
+  const lbl = document.getElementById('selected-day-label');
+  if (!el || !lbl) return;
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const weekDays = ['日','月','火','水','木','金','土'];
+  const dateObj = new Date(calYear, calMonth, selectedCalDay);
+  lbl.textContent = `${calMonth+1}月${selectedCalDay}日 (${weekDays[dateObj.getDay()]}) の予定`;
+  const key = `${calYear}-${calMonth+1}-${selectedCalDay}`;
+  const items = SCHEDULE_DATA[key] || [];
+  if (!items.length) {
+    el.innerHTML = `<div class="text-center py-10 text-on-surface-variant/50"><span class="material-symbols-outlined text-4xl block mb-2">event_available</span><p class="text-sm">この日の予定はありません</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(item => `
+    <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-3 ${item.status==='完了'?'opacity-60':''}">
+      <div class="w-16 h-16 rounded-md bg-surface-container flex items-center justify-center text-2xl flex-shrink-0 ${item.status==='完了'?'grayscale':''}">${item.emoji}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex justify-between items-start mb-0.5">
+          <span class="text-xs font-bold text-on-surface-variant">${item.time} ${item.status==='完了'?'完了':'予定'}</span>
+          <span class="px-2 py-0.5 rounded-sm text-[10px] font-bold ${item.status==='完了'?'bg-surface-dim text-on-surface-variant':'bg-tertiary-container text-on-tertiary-container'}">${item.status}</span>
+        </div>
+        <h4 class="font-bold text-sm truncate mb-0.5">${item.name}</h4>
+        <div class="flex items-center gap-1 ${item.status==='完了'?'text-on-surface-variant':'text-primary'}">
+          <span class="material-symbols-outlined text-sm">${item.type.includes('値下げ')?'trending_down':'publish'}</span>
+          <span class="text-xs font-bold">${item.type}</span>
+        </div>
+      </div>
+      ${item.status==='完了'
+        ? `<span class="material-symbols-outlined text-primary icon-filled text-xl">check_circle</span>`
+        : `<button class="p-1.5 text-on-surface-variant/40 hover:text-on-surface-variant"><span class="material-symbols-outlined">more_vert</span></button>`}
+    </div>`).join('');
+}
+
+function addScheduleItem() { showToast('スケジュール追加機能は近日公開予定です'); }
+
+// ── Clone ──
+function useBannerUrl() {
+  const url = document.getElementById('clipboard-banner-url')?.textContent;
+  if (url) {
+    document.getElementById('clone-url-input').value = url;
+    document.getElementById('clipboard-banner').classList.add('hidden');
+    fetchCloneData();
+  }
+}
+
+async function pasteAndFetch() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const url = text.trim();
+    if (!url.includes('jp.mercari.com/item/')) {
+      showToast('クリップボードにメルカリ商品URLがありません');
+      return;
+    }
+    document.getElementById('clone-url-input').value = url;
+    fetchCloneData();
+  } catch (e) {
+    // クリップボードアクセス拒否 → 手動入力を促す
+    showToast('クリップボードへのアクセスを許可してください');
+    document.getElementById('clone-url-input').focus();
+  }
+}
+
+// ページ表示時にクリップボードのMercari URLを自動検知してバナー表示
+async function checkClipboardForMercari() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text.trim().includes('jp.mercari.com/item/')) return;
+    const banner = document.getElementById('clipboard-banner');
+    if (banner) {
+      banner.classList.remove('hidden');
+      document.getElementById('clipboard-banner-url').textContent = text.trim().replace(/\?.*/, '');
+    }
+  } catch {}
+}
+
+async function fetchCloneData() {
+  const urlInput = document.getElementById('clone-url-input');
+  const btn = document.getElementById('clone-fetch-btn');
+  const errorEl = document.getElementById('clone-error');
+  const url = urlInput.value.trim();
+  if (!url) { showCloneError('URLを入力してください'); return; }
+  if (!url.includes('mercari')) { showCloneError('メルカリのURLを入力してください'); return; }
+
+  btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;"></span> 取得中...';
+  btn.disabled = true;
+  errorEl.classList.add('hidden');
+
+  // Add spinner keyframes if not exists
+  if (!document.getElementById('spin-style')) {
+    const s = document.createElement('style');
+    s.id = 'spin-style';
+    s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+
+  const encoded = encodeURIComponent(url);
+  // ローカル → 本番Vercel の順で試行
+  const endpoints = ['/api/mercari?url=' + encoded, 'https://furimora-assist.vercel.app/api/mercari?url=' + encoded];
+  let lastErr = '';
+  let success = false;
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'APIエラー');
+      clonedData = data;
+      showCloneStep2(data);
+      success = true;
+      break;
+    } catch (e) {
+      lastErr = e.message;
+    }
+  }
+  if (!success) {
+    showCloneError('商品情報を取得できませんでした。Vercelにデプロイするか、Chrome拡張機能をお使いください。');
+  }
+  btn.innerHTML = '<span class="material-symbols-outlined text-lg">download</span>データ取得';
+  btn.disabled = false;
+}
+
+function showCloneError(msg) {
+  const el = document.getElementById('clone-error');
+  document.getElementById('clone-error-msg').textContent = msg;
+  el.classList.remove('hidden');
+  el.classList.add('flex');
+}
+
+function showCloneStep2(data) {
+  clonedData = data;
+  document.getElementById('clone-step-1').classList.add('hidden');
+  document.getElementById('clone-step-2').classList.remove('hidden');
+  document.getElementById('step-2-container').classList.remove('opacity-40');
+  document.getElementById('step-line-1').classList.add('done');
+  document.getElementById('step-2-circle').className = 'w-9 h-9 rounded-full bg-signature-gradient text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/25';
+  document.getElementById('clone-title').value = data.title || '';
+  document.getElementById('clone-description').value = data.description || '';
+  document.getElementById('clone-category-input').value = data.category || '';
+  document.getElementById('clone-condition-input').value = data.condition || '';
+  document.getElementById('clone-price').value = data.currentPrice || 0;
+  updateFeeCalc();
+
+  // 画像グリッド
+  const imgs = data.images && data.images.length ? data.images : (data.thumbnailUrl ? [data.thumbnailUrl] : []);
+  const imgGrid = document.getElementById('extracted-images');
+  if (imgs.length) {
+    imgGrid.innerHTML = imgs.map((url, i) =>
+      `<div class="aspect-square rounded-md overflow-hidden bg-surface-container cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${url}','_blank')">
+        <img src="${url}" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-2xl text-on-surface-variant/30 flex items-center justify-center h-full\\'>broken_image</span>'"/>
+      </div>`
+    ).join('');
+    document.getElementById('img-count-label').textContent = `${imgs.length}枚`;
+    const openBtn = document.getElementById('open-all-img-btn');
+    openBtn.classList.remove('hidden');
+    openBtn.classList.add('flex');
+  } else {
+    imgGrid.innerHTML = [...Array(6)].map((_, i) =>
+      `<div class="aspect-square rounded-md bg-surface-container flex items-center justify-center text-on-surface-variant/30"><span class="material-symbols-outlined">${i===0?'add_a_photo':'image'}</span></div>`
+    ).join('');
+    document.getElementById('img-count-label').textContent = '0枚';
+    document.getElementById('open-all-img-btn').classList.add('hidden');
+  }
+
+  // 配送情報
+  const shippingEl = document.getElementById('shipping-fields');
+  const shippingRows = [
+    { label: '送料負担', value: data.shippingPayer },
+    { label: '配送方法', value: data.shippingMethod },
+    { label: '発送元', value: data.shippingFrom },
+    { label: '発送日数', value: data.shippingDays },
+  ].filter(r => r.value);
+  if (shippingRows.length) {
+    shippingEl.innerHTML = shippingRows.map(r =>
+      `<div class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-2.5">
+        <span class="text-xs text-on-surface-variant font-medium">${r.label}</span>
+        <span class="text-sm font-semibold">${r.value}</span>
+      </div>`
+    ).join('');
+  } else {
+    shippingEl.innerHTML = `<p class="text-xs text-on-surface-variant/60 text-center py-2">配送情報なし</p>`;
+  }
+
+  // いいね数
+  const likesBadge = document.getElementById('likes-count-badge');
+  const likesVal = document.getElementById('likes-count-value');
+  if (data.likesCount > 0) {
+    likesVal.textContent = data.likesCount;
+    likesBadge.classList.remove('hidden');
+    likesBadge.classList.add('flex');
+  } else {
+    likesBadge.classList.add('hidden');
+    likesBadge.classList.remove('flex');
+  }
+}
+
+function copyField(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = el.value !== undefined ? el.value : el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    // ボタンを一時的に「コピー済」に変更
+    const btn = document.querySelector(`[onclick="copyField('${id}')"]`);
+    if (!btn) return;
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<span class="material-symbols-outlined text-sm">check</span>コピー済`;
+    btn.classList.add('bg-green-100','text-green-700');
+    btn.classList.remove('bg-primary/8','text-primary');
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.classList.remove('bg-green-100','text-green-700');
+      btn.classList.add('bg-primary/8','text-primary');
+    }, 2000);
+  }).catch(() => showToast('コピーに失敗しました'));
+}
+
+async function downloadAllImages() {
+  const imgs = (clonedData.images && clonedData.images.length)
+    ? clonedData.images
+    : (clonedData.thumbnailUrl ? [clonedData.thumbnailUrl] : []);
+  if (!imgs.length) { showToast('画像がありません'); return; }
+
+  const btn = document.getElementById('open-all-img-btn');
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>取得中...';
+  btn.disabled = true;
+
+  const itemId = clonedData.itemId || 'item';
+  const useFolderPerItem = document.getElementById('folder-per-item-toggle')?.classList.contains('on') ?? true;
+  let count = 0;
+
+  const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'https://furimora-assist.vercel.app'
+    : '';
+
+  // File System Access API（フォルダが選択済みの場合）
+  if (downloadDirHandle) {
+    try {
+      const perm = await downloadDirHandle.queryPermission({ mode: 'readwrite' });
+      if (perm !== 'granted') await downloadDirHandle.requestPermission({ mode: 'readwrite' });
+
+      const targetDir = useFolderPerItem
+        ? await downloadDirHandle.getDirectoryHandle(itemId, { create: true })
+        : downloadDirHandle;
+
+      for (let i = 0; i < imgs.length; i++) {
+        try {
+          const proxyUrl = `${baseUrl}/api/image-proxy?url=${encodeURIComponent(imgs[i])}`;
+          const res = await fetch(proxyUrl);
+          if (!res.ok) continue;
+          const blob = await res.blob();
+          const ext = (imgs[i].split('.').pop().split('?')[0] || 'jpg').substring(0, 4);
+          const filename = `${String(i + 1).padStart(2, '0')}.${ext}`;
+          const fileHandle = await targetDir.getFileHandle(filename, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          count++;
+        } catch (e) {}
+      }
+      const folderPath = useFolderPerItem ? `${downloadDirHandle.name}/${itemId}` : downloadDirHandle.name;
+      btn.innerHTML = `<span class="material-symbols-outlined text-sm">check</span>${count}枚保存済`;
+      setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 3000);
+      showToast(`${count}枚を ${folderPath}/ に保存しました`);
+      return;
+    } catch (err) {
+      if (err.name !== 'AbortError') showToast('フォルダ保存エラー: ' + err.message);
+    }
+  }
+
+  // フォールバック: 従来のブラウザダウンロード
+  for (let i = 0; i < imgs.length; i++) {
+    try {
+      const proxyUrl = `${baseUrl}/api/image-proxy?url=${encodeURIComponent(imgs[i])}`;
+      const res = await fetch(proxyUrl);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const ext = (imgs[i].split('.').pop().split('?')[0] || 'jpg').substring(0, 4);
+      const filename = useFolderPerItem
+        ? `${itemId}/${String(i + 1).padStart(2, '0')}.${ext}`
+        : `${itemId}_${String(i + 1).padStart(2, '0')}.${ext}`;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+      count++;
+      await new Promise(r => setTimeout(r, 400));
+    } catch (e) {}
+  }
+
+  btn.innerHTML = `<span class="material-symbols-outlined text-sm">check</span>${count}枚保存済`;
+  setTimeout(() => { btn.innerHTML = origHtml; btn.disabled = false; }, 3000);
+  showToast(`${count}枚の写真を保存しました`);
+}
+
+function updateFeeCalc() {
+  const price = parseInt(document.getElementById('clone-price')?.value) || 0;
+  const fee = Math.round(price * 0.1);
+  const el1 = document.getElementById('fee-amount');
+  const el2 = document.getElementById('profit-amount');
+  if (el1) el1.textContent = '¥' + fee.toLocaleString();
+  if (el2) el2.textContent = '¥' + (price - fee).toLocaleString();
+}
+
+async function improveDescription() {
+  const desc = document.getElementById('clone-description');
+  const orig = desc.value;
+  desc.value = '✨ AI改善中...';
+  await new Promise(r => setTimeout(r, 1200));
+  desc.value = `【${document.getElementById('clone-title').value || '商品'}】\n\n${orig}\n\n◆ 商品の特徴\n・高品質で丁寧に使用\n・即購入歓迎\n・丁寧に梱包してお届けします\n\n◆ 発送\n・購入後2〜3日以内に発送予定\n・匿名配送で安心取引`;
+  showToast('説明文をAIで改善しました');
+}
+
+function createClone() {
+  try {
+    const title = document.getElementById('clone-title').value;
+    const price = document.getElementById('clone-price').value;
+    const description = document.getElementById('clone-description').value;
+    const category = document.getElementById('clone-category-input').value;
+    const condition = document.getElementById('clone-condition-input').value;
+    let drafts = [];
+    try { drafts = JSON.parse(localStorage.getItem('furimora_drafts') || '[]'); } catch {}
+    drafts.unshift({
+      id: Date.now(),
+      ...clonedData,
+      title, price, description, category, condition,
+      createdAt: new Date().toISOString()
+    });
+    try { localStorage.setItem('furimora_drafts', JSON.stringify(drafts.slice(0, 50))); } catch {}
+    // 統計更新
+    let s = {};
+    try { s = JSON.parse(localStorage.getItem('furimora_stats') || '{}'); } catch {}
+    s.total = (s.total || 0) + 1;
+    try { localStorage.setItem('furimora_stats', JSON.stringify(s)); } catch {}
+    // アクティビティに追加
+    ACTIVITIES.unshift({ name: title || '新しい商品', action: 'クローンを作成しました', time: 'たった今', status: '下書き', type: 'active', emoji: '📋' });
+    saveStorageData();
+    loadStats();
+    document.getElementById('clone-step-2').classList.add('hidden');
+    document.getElementById('clone-step-3').classList.remove('hidden');
+    document.getElementById('step-3-container').classList.remove('opacity-40');
+    document.getElementById('step-line-2').classList.add('done');
+    document.getElementById('step-3-circle').className = 'w-9 h-9 rounded-full bg-signature-gradient text-white flex items-center justify-center font-bold text-sm shadow-md shadow-primary/25';
+    renderDrafts();
+    showToast('クローンを下書きに保存しました');
+  } catch (err) {
+    showToast('エラー: ' + err.message);
+    console.error('createClone error:', err);
+  }
+}
+
+function resetClone() {
+  clonedData = {};
+  document.getElementById('clone-step-1').classList.remove('hidden');
+  ['clone-step-2','clone-step-3'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById('clone-url-input').value = '';
+  ['step-2-container','step-3-container'].forEach(id => document.getElementById(id).classList.add('opacity-40'));
+  ['step-line-1','step-line-2'].forEach(id => document.getElementById(id).classList.remove('done'));
+  ['step-2-circle','step-3-circle'].forEach(id => {
+    document.getElementById(id).className = 'w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold text-sm';
+  });
+}
+
+// ── Drafts ──
+function renderDrafts() {
+  const drafts = JSON.parse(localStorage.getItem('furimora_drafts') || '[]');
+  const el = document.getElementById('drafts-list');
+  const countEl = document.getElementById('drafts-count');
+  const clearBtn = document.getElementById('drafts-clear-btn');
+  if (!el) return;
+  if (countEl) countEl.textContent = drafts.length + '件';
+  if (clearBtn) clearBtn.classList.toggle('hidden', drafts.length === 0);
+  if (!drafts.length) {
+    el.innerHTML = `<div class="text-center py-8 text-on-surface-variant/50 bg-surface-container-lowest rounded-lg">
+      <span class="material-symbols-outlined text-4xl block mb-2">folder_open</span>
+      <p class="text-sm font-medium">下書きはまだありません</p>
+      <p class="text-xs mt-1">クローンを作成すると自動的に保存されます</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = drafts.map((d, i) => {
+    const price = d.price ? '¥' + Number(d.price).toLocaleString() : '価格未設定';
+    const date = d.createdAt ? formatRelativeTime(d.createdAt) : '';
+    const thumb = d.thumbnailUrl
+      ? `<img src="${d.thumbnailUrl}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-2xl text-on-surface-variant/40\\'>image</span>'">`
+      : `<span class="material-symbols-outlined text-2xl text-on-surface-variant/40">inventory_2</span>`;
+    return `<div class="bg-surface-container-lowest rounded-lg p-4 shadow-sm flex items-center gap-3">
+      <div class="w-16 h-16 rounded-md bg-surface-container flex items-center justify-center flex-shrink-0 overflow-hidden">${thumb}</div>
+      <div class="flex-1 min-w-0">
+        <h4 class="font-bold text-sm truncate">${d.title || '（タイトルなし）'}</h4>
+        <div class="flex items-center gap-2 mt-0.5">
+          <span class="font-headline font-semibold text-sm text-primary">${price}</span>
+          <span class="text-[10px] text-on-surface-variant">${date}</span>
+        </div>
+        ${d.category ? `<span class="text-[10px] text-on-surface-variant">${d.category}</span>` : ''}
+      </div>
+      <div class="flex flex-col gap-1.5 flex-shrink-0">
+        <button onclick="loadDraft(${i})"
+          class="bg-signature-gradient text-white text-[11px] font-bold px-3 py-1.5 rounded-full hover:scale-105 transition-transform active:scale-95">
+          編集
+        </button>
+        <button onclick="deleteDraft(${i})"
+          class="bg-surface-container text-on-surface-variant text-[11px] font-bold px-3 py-1.5 rounded-full hover:bg-error-container/30 hover:text-error transition-colors">
+          削除
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function loadDraft(index) {
+  const drafts = JSON.parse(localStorage.getItem('furimora_drafts') || '[]');
+  const d = drafts[index];
+  if (!d) return;
+  clonedData = d;
+  // ステップをリセットしてからStep2を表示
+  resetClone();
+  document.getElementById('clone-url-input').value = d.url || '';
+  showCloneStep2(d);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteDraft(index) {
+  const drafts = JSON.parse(localStorage.getItem('furimora_drafts') || '[]');
+  const name = drafts[index]?.title || '下書き';
+  drafts.splice(index, 1);
+  localStorage.setItem('furimora_drafts', JSON.stringify(drafts));
+  renderDrafts();
+  showToast(`「${name.substring(0,20)}」を削除しました`);
+}
+
+function clearAllDrafts() {
+  if (!confirm('全ての下書きを削除しますか？')) return;
+  localStorage.removeItem('furimora_drafts');
+  renderDrafts();
+  showToast('全ての下書きを削除しました');
+}
+
+function formatRelativeTime(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'たった今';
+  if (min < 60) return min + '分前';
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return hr + '時間前';
+  const day = Math.floor(hr / 24);
+  if (day < 30) return day + '日前';
+  return Math.floor(day / 30) + 'ヶ月前';
+}
+
+// ── AI Listing ──
+function selectTone(btn, tone) {
+  selectedTone = tone;
+  document.querySelectorAll('.tone-btn').forEach(b => {
+    b.classList.remove('bg-primary/10','text-primary');
+    b.classList.add('bg-surface-container','text-on-surface-variant');
+  });
+  btn.classList.add('bg-primary/10','text-primary');
+  btn.classList.remove('bg-surface-container','text-on-surface-variant');
+}
+
+async function generateDescription() {
+  const keywords = document.getElementById('ai-keywords').value.trim();
+  const btn = document.getElementById('gen-desc-btn');
+  if (!keywords) { showToast('キーワードを入力してください'); return; }
+  btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;"></span>生成中...';
+  btn.disabled = true;
+  await new Promise(r => setTimeout(r, 1500));
+  const endings = { '丁寧':'いただきます。よろしくお願いいたします。', 'カジュアル':'です！気軽にコメントください😊', '高級感':'ございます。上質な商品をお届けいたします。', '訴求力重視':'です！この機会をお見逃しなく！' };
+  const end = endings[selectedTone] || endings['丁寧'];
+  const text = `【極美品】${keywords}\n\n■ 商品の状態\n数回のみ使用した美品です。目立った傷・汚れはございません。\n\n■ 付属品\n元箱・付属品一式完備\n\n■ ${keywords.split('、')[0]}の特徴\n・${keywords.replace(/、/g,'\n・')}\n・大切に使用してきたので状態は良好\n\n■ 発送・梱包\n購入確定後2日以内に発送予定\n丁寧に梱包してお届け${end}`;
+  document.getElementById('gen-text').value = text;
+  document.getElementById('preview-description').textContent = text.substring(0,150) + '...';
+  document.getElementById('gen-result').classList.remove('hidden');
+  btn.innerHTML = '<span class="material-symbols-outlined text-lg">magic_button</span>説明文を生成';
+  btn.disabled = false;
+  showToast('説明文を生成しました');
+}
+
+function copyDescription() {
+  navigator.clipboard.writeText(document.getElementById('gen-text').value)
+    .then(() => showToast('説明文をコピーしました'))
+    .catch(() => showToast('コピーしました'));
+}
+
+function calcStartPrice() {
+  const start = (parseInt(document.getElementById('min-price')?.value)||0) + (parseInt(document.getElementById('buffer-price')?.value)||0);
+  const d = document.getElementById('start-price-display');
+  const p = document.getElementById('preview-price');
+  if (d) d.textContent = '¥' + start.toLocaleString();
+  if (p) p.textContent = '¥' + start.toLocaleString();
+}
+
+function schedulePosting() {
+  showToast('出品をスケジュールに追加しました');
+  setTimeout(() => navigate('schedule'), 1000);
+}
+
+function copyToClipboard(msg) {
+  navigator.clipboard.writeText(msg).catch(() => {});
+  showToast(msg);
+}
+
+// ── PWA ──
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pwaPrompt = e; });
+function copyBookmarklet() {
+  const code = document.getElementById('bookmarklet-code')?.textContent || '';
+  navigator.clipboard.writeText(code).then(() => showToast('コピーしました')).catch(() => showToast('コピーに失敗しました'));
+}
+
+function installPWA() {
+  if (pwaPrompt) {
+    pwaPrompt.prompt();
+    pwaPrompt.userChoice.then(r => { if (r.outcome === 'accepted') showToast('インストールしました！'); pwaPrompt = null; });
+  } else {
+    showToast('ブラウザのメニューから「ホーム画面に追加」をタップしてください');
+  }
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  loadStorageData();
+  loadStats();
+  renderAlerts();
+  renderActivities();
+  renderQueue();
+  renderDrafts();
+  renderCalendar();
+  calcStartPrice();
+  navigate('home');
+  // 未読通知バッジ
+  if (NOTIFICATIONS.length > 0) {
+    document.querySelectorAll('.notif-badge').forEach(b => b.classList.remove('hidden'));
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+
+  // 前回選択したダウンロードフォルダを復元
+  _loadHandleFromIDB().then(handle => {
+    if (handle) { downloadDirHandle = handle; updateDownloadFolderDisplay(handle.name); }
+  });
+
+  // Chrome拡張機能からのクローンデータを受け取る
+  const params = new URLSearchParams(window.location.search);
+  const cloneDataParam = params.get('clone_data');
+  const pageParam = params.get('page');
+  const urlParam = params.get('url');
+
+  function normalizeIncomingMercariUrl(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    let u = raw.trim();
+    try {
+      if (/%[0-9A-Fa-f]{2}/.test(u)) u = decodeURIComponent(u.replace(/\+/g, ' '));
+    } catch (e) { /* すでにデコード済み */ }
+    return u.trim();
+  }
+
+  if (cloneDataParam) {
+    // 全データがエンコードされて渡された場合 → Step2に直接ジャンプ
+    try {
+      const data = JSON.parse(decodeURIComponent(escape(atob(cloneDataParam))));
+      navigate('clone', data.url ? { deepLinkUrl: data.url } : {});
+      setTimeout(() => showCloneStep2(data), 100);
+    } catch (e) {
+      navigate('clone');
+    }
+    history.replaceState({}, '', window.location.pathname);
+  } else if (pageParam === 'clone') {
+    const u = urlParam ? normalizeIncomingMercariUrl(urlParam) : '';
+    navigate('clone', u ? { deepLinkUrl: u } : {});
+    const autofetch = params.get('autofetch') === '1';
+    history.replaceState({}, '', window.location.pathname);
+    if (autofetch && u) setTimeout(() => fetchCloneData(), 300);
+  } else {
+    // モバイル連携: ブックマークレット(iOS) / Share Target(Android PWA) — page=clone と排他
+    const mercariRaw = params.get('mercari_url');
+    const mercariUrlNorm = normalizeIncomingMercariUrl(mercariRaw);
+    const hasItemPath = /\/item\/m\w+/i.test(mercariUrlNorm);
+    const looksMercariHost = /mercari\.com/i.test(mercariUrlNorm) || /merc\.li/i.test(mercariUrlNorm);
+    if (mercariRaw && (hasItemPath || looksMercariHost)) {
+      history.replaceState({}, '', window.location.pathname);
+      navigate('clone', { deepLinkUrl: mercariUrlNorm });
+      // deepLink 時は checkClipboardForMercari を走らせない（iOS の非同期クリップボードと競合しない）
+      setTimeout(() => fetchCloneData(), 300);
+    }
+  }
+});
+</script>
+</body>
+</html>

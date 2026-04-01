@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>メルカリ再出品アシスト - クローン作成</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#ea0020",
+              "outline-variant": "#eabcb7",
+              "on-tertiary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#5c0006",
+              "surface-container-low": "#f3f3f3",
+              "secondary": "#b62224",
+              "on-primary-fixed-variant": "#930010",
+              "secondary-fixed-dim": "#ffb3ac",
+              "on-tertiary-fixed": "#001e2e",
+              "tertiary-fixed-dim": "#87ceff",
+              "surface": "#f9f9f9",
+              "inverse-primary": "#ffb3ac",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "secondary-container": "#fd5650",
+              "on-error-container": "#93000a",
+              "on-surface-variant": "#5f3e3b",
+              "on-primary-fixed": "#410003",
+              "inverse-on-surface": "#f1f1f1",
+              "on-background": "#1a1c1c",
+              "on-tertiary-fixed-variant": "#004c6d",
+              "error-container": "#ffdad6",
+              "outline": "#956d6a",
+              "background": "#f9f9f9",
+              "on-secondary-fixed-variant": "#930010",
+              "on-secondary-fixed": "#410003",
+              "tertiary-fixed": "#c8e6ff",
+              "surface-tint": "#c00018",
+              "on-tertiary-container": "#fcfcff",
+              "tertiary": "#00628c",
+              "surface-variant": "#e2e2e2",
+              "surface-container": "#eeeeee",
+              "primary-fixed": "#ffdad6",
+              "surface-dim": "#dadada",
+              "secondary-fixed": "#ffdad6",
+              "primary-fixed-dim": "#ffb3ac",
+              "primary": "#bb0017",
+              "on-surface": "#1a1c1c",
+              "on-primary-container": "#fffbff",
+              "surface-bright": "#f9f9f9",
+              "on-secondary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e8e8e8",
+              "inverse-surface": "#2f3131",
+              "tertiary-container": "#007cb0"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Noto Sans JP"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .signature-gradient { background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%); }
+        .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 glass-header shadow-sm shadow-red-900/5 h-16 px-6 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">content_copy</span>
+</div>
+<h1 class="text-red-700 dark:text-red-500 font-plus-jakarta-sans font-bold tracking-tight text-lg">メルカリ再出品アシスト</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-zinc-500 hover:scale-105 transition-transform duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/10">
+<img class="w-full h-full object-cover" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVmSTfF3XGsvh7PVcrZnnhKptfoKOdg1CfJcUfdNfRsPbNLy5RJrwui8TRRNc1oqtD6A2z9E4C1trnQruv1IcvVc-8EiJb0F_MptA85_Be4A8w1h8zxkOiDhT0cYWM-4ks3ntzEhQ7vm7I3JrdK3a2kP89n-0PaCKng7OQfHzoH4anX4U51z_Jw6lvMCuZB_pZ7WvkfIod6TrpZfSiSOQxfk7HuytYGN_3MGaRtPv4o3Lui_9kYx9_y2ffJ3e4VoAyeHdCR1-XUaw"/>
+</div>
+</div>
+<div class="bg-zinc-100/50 h-[1px] w-full absolute bottom-0 left-0"></div>
+</header>
+<main class="pt-24 px-6 max-w-4xl mx-auto">
+<!-- Step Indicator -->
+<div class="mb-10 flex items-center justify-center gap-4">
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full signature-gradient text-white flex items-center justify-center font-bold shadow-lg shadow-primary/20">1</div>
+<span class="text-[10px] font-bold text-primary">URL入力</span>
+</div>
+<div class="h-[2px] w-12 bg-primary/20"></div>
+<div class="flex flex-col items-center gap-2 opacity-40">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold">2</div>
+<span class="text-[10px] font-bold">抽出・編集</span>
+</div>
+<div class="h-[2px] w-12 bg-surface-container-highest"></div>
+<div class="flex flex-col items-center gap-2 opacity-40">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-bold">3</div>
+<span class="text-[10px] font-bold">クローン完了</span>
+</div>
+</div>
+<!-- Step 1: URL Input Section -->
+<section class="mb-8">
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-sm">
+<label class="block text-sm font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">link</span>
+                    商品URLを貼り付け
+                </label>
+<div class="flex flex-col md:flex-row gap-4">
+<input class="flex-1 bg-surface-container rounded-full px-6 py-4 border-none focus:ring-2 focus:ring-primary/20 text-on-surface placeholder:text-zinc-400" placeholder="https://jp.mercari.com/item/m..." type="text"/>
+<button class="signature-gradient text-white px-8 py-4 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-lg">download</span>
+                        データ取得
+                    </button>
+</div>
+<p class="mt-4 text-xs text-on-surface-variant leading-relaxed">
+                    ※ メルカリの商品ページURLを入力してください。AIが自動的に画像、タイトル、説明文、カテゴリー情報を抽出します。
+                </p>
+</div>
+</section>
+<!-- Step 2: Extracted Content (Appears after URL fetch) -->
+<section class="space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+                    抽出されたメディア
+                </h2>
+<span class="text-xs text-on-surface-variant font-medium">8枚の画像を抽出済み</span>
+</div>
+<!-- Media Bento Grid -->
+<div class="grid grid-cols-4 md:grid-cols-6 gap-3">
+<div class="col-span-2 row-span-2 aspect-square rounded-md overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Primary product photo of a red sneaker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHJmB410EYBpGj8WURrKeQxSd4hvDxo2EkTvfY6cUbts2keyf-09s9ilDgCCuXDSVYaLonEt_-TvzZcCyCgfu4Jl3Hf_9iH57zmBhUQkvk_-W2NRwxEJFxoJUS_Wah64wuGCNJ11g6Ami-WeGdzF0wFlY2GuxaAEKMFH_DT76xDs7lL-I8jxESA97dPF-E2g8zA55Omxahp7OpXrE86Fziy4-HLbkZYvyWZjLxUXRZgAaLxic-kuNGoIYcG0W0-wQCyrJnDTAk4Wo"/>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Side view of the sneaker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBqH2ry9uDzPw3t4JMnQK9bXEV8GErIYV6z8-C2zh4rzELE4WcSeHJ8DM_s9n3Y_ma1VJ0O6HRirIy46L1DAAj33KXwNy1KijWw1HaNyYk2MXVlStuIDZSDhjMRG9NPlN2ZOUNYNWRyvdjnrgP2cirmm2ngOzC1r_G45k9NYVcQfXK_xLrse3hyaW6uPiKw8hDxkHswysIJ5BAOx4idSt2wAkW6ZpHUyk2Y8s7cEaRa2UWDq5BgRGGj2-q1u6QPvSeGNdh3qYEOBY"/>
+<div class="absolute inset-0 bg-black/10"></div>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Sole details of the sneaker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnDBnJ8YE147qrqAmuivAm1CLv3FFmxF9bCTxufvtLw7LPGqbpbsM9_NM79u_pT8C46WEvHHpAYHOdPgyXJMS4glfcZTHVitIz1myhac9vBohn4JU5IGEOXFlEXGl7AFF49KLAvdc5VwMGEEi-gIiG_5qX5ShO9OaL9-lgMZpkeQUl5ev4afYu9Nymp5R6g4neTT1baCJi-qdbU85Kk7DroLjSj8NrJ_6dHHuL19EAmd7rElGpyF87vHJ9_imnpaehUDXFMVJim4s"/>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Heel view of the sneaker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLlyab1TE-9M6gILcNTbg7jRj4yOEjK4I85_SiRTaERlumgghFNGZ5kbHzrv5av98LBw1xN5M1X4eKAskesPBMJyqr5qDZLyXO5sq7YkfjMpaVSUUQY60eTSF8nxjxg9YieTPfnVx_8jEBttbG8tfZUHyRIdR-06v7Irg43iy4gDPmWqq4qA8WlX8YL_1OUSDNJs582gAZqSlOMABlhkVn4kM-52swN9nN9UNxn1mum_LtHPKf8mGTDovUlGU4MgvUvBsgDVvDs1w"/>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container border-2 border-dashed border-outline-variant/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline">add_a_photo</span>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Lifestyle shot of the sneaker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJ_r6w1t0pDi8gV7MUSUjTRy1j7Zmp9jA0XSDEKQI7_mnG3lVflcXN1Lbw1s8ROW0KNItsF2mzKxhLo6P9aUjzKYD1YENyrhAfVBk3T5nncNph-U3laz0ls14_UvWLfrmNtcanpQWZDiKlY4C0QqPYtDwG6rLUOtIkvV9uJvt4IwTnSK63H1aGnVRMTwnERkh2NzcTt_Tk-JJEgCSOxEZ8aAhw_N1DGJMZrC707A0JR9Qo_9UupsksFCi5X2y8CuGRCPmwqLSQXiw"/>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Box and accessories" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3NocZW4YmQ3Ho61Z-kNPfdCYsSurzjBV7tFcjIp-yOLSatejHKsBOrQXc0aLuFPD2lKRDgfCfkXvu9yp33Y_1z0SCqYEXc5Ky3KY0bJ2iL9FyTII2nFZ29a0WZelfuiVAkp_EAbqJcMCMVXqh7nAh6B_oZ5sKEuhsGN8HrO10BCQHL-2m_A4FUwfImx330NLfwjNOpxZFwql1Sy51eIlmD5CusbsY0RI0KT7Zho_-7lIF_0BVoSUUM3PlkGb6r5DiTcqcXW3DMeI"/>
+</div>
+<div class="aspect-square rounded-md overflow-hidden bg-surface-container relative">
+<img class="w-full h-full object-cover" data-alt="Tag and authenticity detail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgFErFaMDcNGSDWK74woUX8ZYy8GlayF-C_T817NXfmGvV4s3j7pY3BET4c1aDd0I6hD8Mz7KLZ4kVbnb5Zd0IMbC4UwFm_hwppIkxsJXN9E_yb1uo4Jm9EDNFlFK5dyz5vJqOUJ0BYfowsuOgP6-q3XbJ_spBngH12EtKnSTmgj1BAAg-HRsz9y3xuKQGFl2HxMBDVTqfw9d1qhAd9Jk6JccbSmdSbu-51erAQkXxwQZZJboanMhUOulzzUvhW62UyB8-LdvoSlY"/>
+</div>
+</div>
+<!-- Editable Fields -->
+<div class="bg-surface-container-lowest rounded-lg p-8 shadow-sm space-y-8">
+<!-- Title -->
+<div class="space-y-3">
+<label class="block text-sm font-bold text-on-surface">商品名</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-4 text-on-surface font-medium focus:ring-2 focus:ring-primary/20" type="text" value="【新品未使用】限定モデル Nike Air Max 270 プレミアム レッド 27.5cm"/>
+</div>
+<!-- Description -->
+<div class="space-y-3">
+<div class="flex justify-between items-end">
+<label class="block text-sm font-bold text-on-surface">商品説明</label>
+<button class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-xs">auto_fix</span>
+                            AIで魅力的な文章に修正
+                        </button>
+</div>
+<textarea class="w-full bg-surface-container-low border-none rounded-xl px-4 py-4 text-on-surface text-sm leading-relaxed focus:ring-2 focus:ring-primary/20" rows="6">限定カラーのレッドです。
+コレクション整理のため出品いたします。
+正規店で購入した本物です。
+
+■ 状態：新品未使用（タグ付き）
+■ サイズ：27.5cm
+■ 付属品：箱、替え紐
+
+即購入OKです。よろしくお願いします。
+                    </textarea>
+</div>
+<!-- Attributes Bento -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-4 rounded-xl space-y-2">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">カテゴリー</span>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">メンズ &gt; 靴 &gt; スニーカー</span>
+<span class="material-symbols-outlined text-sm text-zinc-400">chevron_right</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl space-y-2">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">商品の状態</span>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-sm font-medium">新品、未使用</span>
+</div>
+<span class="material-symbols-outlined text-sm text-zinc-400">expand_more</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl space-y-2">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">ブランド</span>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">NIKE</span>
+<span class="material-symbols-outlined text-sm text-zinc-400">edit</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl space-y-2">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">サイズ</span>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">27.5cm</span>
+<span class="material-symbols-outlined text-sm text-zinc-400">edit</span>
+</div>
+</div>
+</div>
+<!-- Price Section -->
+<div class="pt-6 border-t border-zinc-100 flex items-center justify-between">
+<div>
+<span class="text-xs text-on-surface-variant font-bold block mb-1">販売価格</span>
+<div class="flex items-baseline gap-1">
+<span class="text-sm font-bold text-on-surface">¥</span>
+<span class="text-3xl font-black font-plus-jakarta-sans tracking-tight">18,500</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-[10px] text-zinc-400 block">販売手数料 (10%) : ¥1,850</span>
+<span class="text-sm font-bold text-primary">販売利益 : ¥16,650</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Action CTA -->
+<section class="mt-12 mb-8">
+<button class="w-full signature-gradient text-white py-6 rounded-full font-bold text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">content_copy</span>
+                クローンを作成してAIで編集
+            </button>
+<p class="text-center mt-4 text-xs text-on-surface-variant">
+                クリックすると、下書きとして保存されAI編集画面に移動します。
+            </p>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 glass-header border-t border-zinc-100 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-zinc-400 hover:bg-zinc-50 rounded-xl transition-colors px-4 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">ホーム</span>
+</a>
+<a class="flex flex-col items-center justify-center text-red-700 font-bold hover:bg-zinc-50 rounded-xl transition-colors px-4 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="content_copy" style="font-variation-settings: 'FILL' 1;">content_copy</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">クローン</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 hover:bg-zinc-50 rounded-xl transition-colors px-4 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="add_box">add_box</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">出品</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 hover:bg-zinc-50 rounded-xl transition-colors px-4 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_month">calendar_month</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">スケジュール</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>メルカリ再出品アシスト - ホーム</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#ea0020",
+              "outline-variant": "#eabcb7",
+              "on-tertiary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#5c0006",
+              "surface-container-low": "#f3f3f3",
+              "secondary": "#b62224",
+              "on-primary-fixed-variant": "#930010",
+              "secondary-fixed-dim": "#ffb3ac",
+              "on-tertiary-fixed": "#001e2e",
+              "tertiary-fixed-dim": "#87ceff",
+              "surface": "#f9f9f9",
+              "inverse-primary": "#ffb3ac",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "secondary-container": "#fd5650",
+              "on-error-container": "#93000a",
+              "on-surface-variant": "#5f3e3b",
+              "on-primary-fixed": "#410003",
+              "inverse-on-surface": "#f1f1f1",
+              "on-background": "#1a1c1c",
+              "on-tertiary-fixed-variant": "#004c6d",
+              "error-container": "#ffdad6",
+              "outline": "#956d6a",
+              "background": "#f9f9f9",
+              "on-secondary-fixed-variant": "#930010",
+              "on-secondary-fixed": "#410003",
+              "tertiary-fixed": "#c8e6ff",
+              "surface-tint": "#c00018",
+              "on-tertiary-container": "#fcfcff",
+              "tertiary": "#00628c",
+              "surface-variant": "#e2e2e2",
+              "surface-container": "#eeeeee",
+              "primary-fixed": "#ffdad6",
+              "surface-dim": "#dadada",
+              "secondary-fixed": "#ffdad6",
+              "primary-fixed-dim": "#ffb3ac",
+              "primary": "#bb0017",
+              "on-surface": "#1a1c1c",
+              "on-primary-container": "#fffbff",
+              "surface-bright": "#f9f9f9",
+              "on-secondary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e8e8e8",
+              "inverse-surface": "#2f3131",
+              "tertiary-container": "#007cb0"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans", "Noto Sans JP"],
+              "body": ["Inter", "Noto Sans JP"],
+              "label": ["Inter", "Noto Sans JP"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        background-color: #f9f9f9;
+        color: #1a1c1c;
+      }
+      .font-plus-jakarta-sans { font-family: 'Plus Jakarta Sans', sans-serif; }
+      .font-noto-sans-jp { font-family: 'Noto Sans JP', sans-serif; }
+      .bg-signature-gradient {
+        background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%);
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .pulse-indicator {
+        width: 8px;
+        height: 8px;
+        background-color: #bb0017;
+        border-radius: 50%;
+        filter: blur(1px);
+        display: inline-block;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-sm shadow-red-900/5 h-16 px-6 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="User profile circular avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbkdmAU_BGyITwopAGlaqYrqGEbsfyKnD0rwJUQqWJO4WE97dOynS6yXAbzpi5cKlTnKezgur8JNk1Kqtm21V1FgyLM-_GWpV0ZeKf-mUYYrmKPbBa1Ql-81QlqcEH4zZn4_Qf-O5OzMKTSARBFL7NPqRKgTZBeLsDJmqkRh1eixPTK0YClN2HGgQeJNeHqWHQVqFGt_P7MutVHc8D6KFNw_zp_q37mS0FF9ZVltZZUXsKe8_hFDSLPPoF6ENEGm273QR_c8_em0o"/>
+</div>
+<h1 class="font-plus-jakarta-sans font-bold tracking-tight text-lg text-red-700 dark:text-red-500">メルカリ再出品アシスト</h1>
+</div>
+<button class="text-zinc-500 dark:text-zinc-400 hover:scale-105 transition-transform duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="bg-zinc-100/50 dark:bg-zinc-800/50 h-[1px] w-full absolute bottom-0 left-0"></div>
+</header>
+<main class="pt-24 px-6 max-w-5xl mx-auto space-y-8">
+<!-- Hero Stats Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm flex flex-col justify-between min-h-[160px] relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-8xl" data-icon="inventory_2">inventory_2</span>
+</div>
+<div>
+<p class="text-on-surface-variant text-sm font-medium">出品数</p>
+<h2 class="font-plus-jakarta-sans text-4xl font-extrabold mt-2 tracking-tighter">124</h2>
+</div>
+<div class="flex items-center gap-2 mt-4 text-xs font-semibold text-tertiary">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span>前週比 +12%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm flex flex-col justify-between min-h-[160px] relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-8xl" data-icon="price_check">price_check</span>
+</div>
+<div>
+<p class="text-on-surface-variant text-sm font-medium">本日の値下げ</p>
+<h2 class="font-plus-jakarta-sans text-4xl font-extrabold mt-2 tracking-tighter text-primary">08</h2>
+</div>
+<div class="flex items-center gap-2 mt-4 text-xs font-semibold text-zinc-500">
+<span class="pulse-indicator"></span>
+<span>自動調整実行中</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm flex flex-col justify-between min-h-[160px] relative overflow-hidden group border-2 border-primary/5">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-8xl" data-icon="auto_renew">autorenew</span>
+</div>
+<div>
+<p class="text-on-surface-variant text-sm font-medium">再出品が必要な商品</p>
+<h2 class="font-plus-jakarta-sans text-4xl font-extrabold mt-2 tracking-tighter">42</h2>
+</div>
+<button class="bg-signature-gradient text-white text-xs font-bold px-4 py-2 rounded-full w-fit hover:scale-105 active:scale-95 transition-all mt-4">
+                    一括再出品を開始
+                </button>
+</div>
+</section>
+<!-- Alerts Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline font-bold text-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+                    値下げアラート
+                </h3>
+<span class="text-xs text-on-surface-variant font-medium">24時間以上未販売</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Alert Card 1 -->
+<div class="bg-error-container/20 p-4 rounded-lg flex gap-4 items-center">
+<div class="w-16 h-16 rounded-md bg-surface-container overflow-hidden shrink-0">
+<img alt="Nike shoes" class="w-full h-full object-cover" data-alt="Vibrant red athletic sneakers on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnog3lDwM-NWiZ-Z6ZhqCp0HKizrQ_vvKt0FSaJfDuGjSIV2tiynQmxGw0E3YK_lVan1jdcEBL5g4-DSYRbKziF7NKciV4r4WS6A6rheqr-zFL48iQ_X-oYNvi0cIp2Mat0Mm-BfVWBpr4Ql02UBDRoo4d8Ezg-eQMy4YdSC3LyN_OJsA6Z4vthsCJ0Wa42B1VmcusrTrHs5SUVmPDEPAS3ybIPtokDECSkGHxuIK44-dUVfGFiib132BXjl4_Yk-fuJDqZsfAjwM"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold truncate">ナイキ スニーカー 27cm</h4>
+<p class="text-xs text-on-surface-variant mt-1">閲覧数: 42 • いいね: 3</p>
+</div>
+<button class="bg-surface-container-lowest text-primary text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
+                        10%OFF
+                    </button>
+</div>
+<!-- Alert Card 2 -->
+<div class="bg-error-container/20 p-4 rounded-lg flex gap-4 items-center">
+<div class="w-16 h-16 rounded-md bg-surface-container overflow-hidden shrink-0">
+<img alt="Classic watch" class="w-full h-full object-cover" data-alt="Minimalist wrist watch with leather strap" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0vf2AQz0RZzpGQPAnluSdcwtknLMlO9JQv72Jgi0bGC8rZs7f8Wc7aBQmxVsDbGsavH-doO2CROZikouUONrPxzoAb3mQ1Eava6v0-7hTMBi6JPpf42Ry7nLdhg3kJp9hEVByL7IshVasGU4c_UMPwnXzcb52sq88RtgrIWJRrRmX9PpVR6U1NtYkZn23WhYpjQgChsmC-j7-TVOPlZzJCtPt2RnOh4wf20ZjIe4oDVhlEcSIl-JYdhRjTOs882f2xvRdJPRZAAQ"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold truncate">クラシック 腕時計 ゴールド</h4>
+<p class="text-xs text-on-surface-variant mt-1">閲覧数: 156 • いいね: 12</p>
+</div>
+<button class="bg-surface-container-lowest text-primary text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-colors">
+                        5%OFF
+                    </button>
+</div>
+</div>
+</section>
+<!-- Recent Activity -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline font-bold text-xl">最近のアクティビティ</h3>
+<button class="text-primary text-xs font-bold">すべて見る</button>
+</div>
+<div class="space-y-2">
+<!-- Activity Item 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between group hover:bg-surface-container-low transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-md bg-surface-container overflow-hidden shrink-0">
+<img alt="Headphones" class="w-full h-full object-cover" data-alt="Premium wireless headphones black finish" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5YCqEBZjWK22718SczG_Yg6LIHdFTsZIhxHYnqt2OxyDuM1JqoEJndr5z4-XGy5r7D61UTrAh_0hcARxJsPkYyIMMH62ZADPmki4vsUqdKLwinxQTgHWe5jUKkifZIIbCga-3x44IwMnQEicZno1ESHCgC7icyaJFGFsd21ghJ866nu0TO7d2WdDiP0ycYURaVdo_BllxMljQq0AR0hFetFtdbmY2qOura0h2F-GCgCUpQMhAHfbToHYQS96Vr-tOKE17beZHPwg"/>
+</div>
+<div>
+<p class="text-sm font-bold">ワイヤレスヘッドホン</p>
+<p class="text-[10px] text-on-surface-variant">2分前 • <span class="text-tertiary">価格改定完了 (¥12,800 → ¥11,500)</span></p>
+</div>
+</div>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-0.5 rounded-sm">出品中</span>
+</div>
+<!-- Activity Item 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between group hover:bg-surface-container-low transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-md bg-surface-container overflow-hidden shrink-0">
+<img alt="Speaker" class="w-full h-full object-cover" data-alt="Portable bluetooth speaker on wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnstIb4sF2NW8IqkI_BFAIhqe8hsXLDQVqIgxk0MZ4TpRCdgazA4C3QLX1-MyBjjWfqR8rYXOYorRoe3I7lXa7lMwPMXwl7SjGf3ZJMahW-bY6WR_4pzKj44WrzA233TA_B7f7QBtw1svvL-zKPGTvKcd0Vjh9TXp18dJYC5WQSOZ8sMwFyBwM29ToD7aPjpS9DsEU6bPwWk_ZITpATdsI3OalHGdOnfVaMWhj77oUL1-h8hj5jhqpmW1Dh46Q6tGKUmWXopqsaCA"/>
+</div>
+<div>
+<p class="text-sm font-bold">ポータブルスピーカー</p>
+<p class="text-[10px] text-on-surface-variant">15分前 • <span class="text-primary">再出品が予約されました</span></p>
+</div>
+</div>
+<span class="bg-surface-dim text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded-sm">売却済み</span>
+</div>
+<!-- Activity Item 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between group hover:bg-surface-container-low transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-md bg-surface-container overflow-hidden shrink-0">
+<img alt="Smartphone" class="w-full h-full object-cover" data-alt="Modern smartphone screen display" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHDjEt5YoL52X2B_AbVLuZJprWVyVb9DI6bvYY2tF_ofSXsZR9Sd5TLEpk4KizoY_I1zufCVEFoL8NghVmvvauW7lwRdJGOOsHu5a9NrvR-GbR2BOfGQ3Sr2DJ-gDzweogZ9LOKj4qOB1C4IjsR0XmWN3BMuFageusXG74U4YiJ5jbg4yOYZAC2j_yswe5mDjKVAfiAHRRo42Ug1IHwMSI1cfPXyU-lmaBkKF6zCJjpoZ2fxFggp1_MV7qadYNAUru5IQhqrIC864"/>
+</div>
+<div>
+<p class="text-sm font-bold">最新型スマートフォン 128GB</p>
+<p class="text-[10px] text-on-surface-variant">1時間前 • <span class="text-tertiary">新着いいね！(3件)</span></p>
+</div>
+</div>
+<span class="bg-tertiary-container text-on-tertiary-container text-[10px] font-bold px-2 py-0.5 rounded-sm">出品中</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 border-t border-zinc-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-[0_-4px_12px_rgba(0,0,0,0.03)] flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-red-700 dark:text-red-500 font-bold hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-all duration-150 active:scale-90 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight mt-1">ホーム</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-all duration-150 active:scale-90 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight mt-1">クローン</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-all duration-150 active:scale-90 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight mt-1">出品</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-all duration-150 active:scale-90 px-4 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight mt-1">スケジュール</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#ea0020",
+              "outline-variant": "#eabcb7",
+              "on-tertiary": "#ffffff",
+              "error": "#ba1a1a",
+              "on-primary": "#ffffff",
+              "on-secondary-container": "#5c0006",
+              "surface-container-low": "#f3f3f3",
+              "secondary": "#b62224",
+              "on-primary-fixed-variant": "#930010",
+              "secondary-fixed-dim": "#ffb3ac",
+              "on-tertiary-fixed": "#001e2e",
+              "tertiary-fixed-dim": "#87ceff",
+              "surface": "#f9f9f9",
+              "inverse-primary": "#ffb3ac",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "secondary-container": "#fd5650",
+              "on-error-container": "#93000a",
+              "on-surface-variant": "#5f3e3b",
+              "on-primary-fixed": "#410003",
+              "inverse-on-surface": "#f1f1f1",
+              "on-background": "#1a1c1c",
+              "on-tertiary-fixed-variant": "#004c6d",
+              "error-container": "#ffdad6",
+              "outline": "#956d6a",
+              "background": "#f9f9f9",
+              "on-secondary-fixed-variant": "#930010",
+              "on-secondary-fixed": "#410003",
+              "tertiary-fixed": "#c8e6ff",
+              "surface-tint": "#c00018",
+              "on-tertiary-container": "#fcfcff",
+              "tertiary": "#00628c",
+              "surface-variant": "#e2e2e2",
+              "surface-container": "#eeeeee",
+              "primary-fixed": "#ffdad6",
+              "surface-dim": "#dadada",
+              "secondary-fixed": "#ffdad6",
+              "primary-fixed-dim": "#ffb3ac",
+              "primary": "#bb0017",
+              "on-surface": "#1a1c1c",
+              "on-primary-container": "#fffbff",
+              "surface-bright": "#f9f9f9",
+              "on-secondary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e8e8e8",
+              "inverse-surface": "#2f3131",
+              "tertiary-container": "#007cb0"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans", "Noto Sans JP"],
+              "body": ["Inter", "Noto Sans JP"],
+              "label": ["Inter", "Noto Sans JP"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #bb0017 0%, #ea0020 100%);
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #bb0017;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px rgba(187, 0, 23, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 glass-header flex justify-between items-center h-16 px-6 shadow-sm shadow-red-900/5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+<h1 class="text-red-700 dark:text-red-500 font-headline font-bold tracking-tight text-lg">メルカリ再出品アシスト</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-zinc-500 hover:scale-105 transition-transform duration-200 active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+<div class="bg-zinc-100/50 h-[1px] w-full absolute bottom-0 left-0"></div>
+</header>
+<main class="pt-24 px-6 max-w-4xl mx-auto space-y-8">
+<!-- Section 1: Optimization Progress Chart (Bento Style) -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-xl tracking-tight">本日の最適化進捗</h2>
+<div class="flex items-center gap-2 px-3 py-1 bg-tertiary-container/10 rounded-full">
+<span class="pulse-dot"></span>
+<span class="text-xs font-bold text-tertiary-container">実行中</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="md:col-span-2 bg-surface-container-lowest p-6 rounded-lg shadow-sm shadow-red-900/5 flex flex-col justify-between min-h-[200px]">
+<div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">総リピート成功率</p>
+<h3 class="font-headline font-extrabold text-4xl text-primary tracking-tighter">84.2%</h3>
+</div>
+<div class="mt-4 flex items-end gap-1 h-24">
+<div class="w-full bg-surface-container h-8 rounded-t-sm"></div>
+<div class="w-full bg-surface-container h-12 rounded-t-sm"></div>
+<div class="w-full bg-surface-container h-16 rounded-t-sm"></div>
+<div class="w-full bg-primary h-20 rounded-t-sm shadow-lg shadow-red-900/10"></div>
+<div class="w-full bg-primary/60 h-14 rounded-t-sm"></div>
+<div class="w-full bg-primary/40 h-10 rounded-t-sm"></div>
+<div class="w-full bg-primary/20 h-6 rounded-t-sm"></div>
+</div>
+<div class="flex justify-between text-[10px] text-on-surface-variant pt-2 border-t border-surface-container mt-2">
+<span>08:00</span>
+<span>12:00</span>
+<span>16:00</span>
+<span>20:00</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm shadow-red-900/5">
+<p class="text-on-surface-variant text-sm font-medium">本日再出品済み</p>
+<div class="flex items-baseline gap-1 mt-2">
+<span class="font-headline font-bold text-3xl">12</span>
+<span class="text-xs text-on-surface-variant">件</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-sm shadow-red-900/5">
+<p class="text-on-surface-variant text-sm font-medium">推定増加利益</p>
+<div class="flex items-baseline gap-1 mt-2">
+<span class="font-headline font-bold text-3xl text-primary">¥4,200</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Copy-Paste Assistant -->
+<section class="space-y-4">
+<h2 class="font-headline font-bold text-xl tracking-tight">コピペアシスタント</h2>
+<div class="bg-surface-container-low p-4 rounded-lg flex flex-wrap gap-3">
+<button class="flex-1 min-w-[140px] flex items-center justify-center gap-2 bg-surface-container-lowest py-3 px-4 rounded-full text-sm font-bold shadow-sm hover:scale-[1.02] transition-transform active:scale-95">
+<span class="material-symbols-outlined text-primary text-lg">title</span>
+<span>タイトルをコピー</span>
+</button>
+<button class="flex-1 min-w-[140px] flex items-center justify-center gap-2 bg-surface-container-lowest py-3 px-4 rounded-full text-sm font-bold shadow-sm hover:scale-[1.02] transition-transform active:scale-95">
+<span class="material-symbols-outlined text-primary text-lg">description</span>
+<span>説明文をコピー</span>
+</button>
+<button class="flex-1 min-w-[140px] flex items-center justify-center gap-2 bg-surface-container-lowest py-3 px-4 rounded-full text-sm font-bold shadow-sm hover:scale-[1.02] transition-transform active:scale-95">
+<span class="material-symbols-outlined text-primary text-lg">payments</span>
+<span>価格をコピー</span>
+</button>
+</div>
+</section>
+<!-- Section 3: Reduction Queue -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline font-bold text-xl tracking-tight">値下げ・再出品待ちリスト</h2>
+<span class="text-sm font-medium text-on-surface-variant">全 8 件</span>
+</div>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 shadow-sm shadow-red-900/5 group">
+<div class="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+<img alt="Sneakers" class="w-full h-full object-cover" data-alt="Red stylish athletic sneakers on clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARSZxSQRuxyAeB4CjglVpPhXTuFxSjcu-fQRC5k9cH5VdXZ_eMbkrHMZziQS1_9ZMMGETQJUQ1D8Y7tZCmfwtND6PPpjW6-kI3QEE8qoTFO6UgCMChfwXAW9JEXEUljJIGCgM3vJceFs8o0AamZOXbQW_0c6KmV8nMeUuqREWH97ZrGSdqZANHtO_kI1xKDgKsDatKoPHFHFx_TTElsx8b9FBcG88a68Mp7bXXQZybv7EWoR-aoLP7JDozyOi5h4alQCNW5MI9HPY"/>
+</div>
+<div class="flex-grow min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h4 class="text-sm font-bold truncate pr-4">限定モデル スカイランナー 27.5cm</h4>
+<span class="flex-shrink-0 px-2 py-0.5 bg-tertiary-container text-white text-[10px] font-bold rounded-sm">出品中</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-on-surface-variant">
+<span class="font-headline font-semibold text-on-surface">¥12,800</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_down</span>
+                                3回値下げ済み
+                            </span>
+</div>
+<p class="text-[10px] text-zinc-400 mt-2">最終更新: 22時間前</p>
+</div>
+<div class="flex flex-col gap-2">
+<button class="signature-gradient text-white text-xs font-bold px-4 py-2 rounded-full hover:scale-105 transition-transform active:scale-95 whitespace-nowrap">
+                            今すぐ再出品
+                        </button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 shadow-sm shadow-red-900/5 group">
+<div class="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+<img alt="Watch" class="w-full h-full object-cover" data-alt="Minimalist luxury watch on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0szdsYVgEoyorF-mMw-vzaLfK3zQ5G52dd5iEEKSr_0kIJZxQP43RNaBwOWXbNAu-Rh07Vv3w9JrdzF_lheWKHgUDuumRan9Iq3uTS-qhphnQIGCQQpS8FTmXM57i-pCL4us7pbK0IB7GaLc4Tkcio1CrTdh6zS3MTnF7XDXmmxt3iFFjdEjcfhNspKeaspFsxEC5cSswmxm2QzXrmDyk26Zcims-jA9fAJJnpYKyV7wmjDENUtkF8FQ70wjBbsjxNNJiW2VF4BA"/>
+</div>
+<div class="flex-grow min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h4 class="text-sm font-bold truncate pr-4">ヴィンテージ ミニマリスト ウォッチ</h4>
+<span class="flex-shrink-0 px-2 py-0.5 bg-zinc-200 text-zinc-600 text-[10px] font-bold rounded-sm">待機中</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-on-surface-variant">
+<span class="font-headline font-semibold text-on-surface">¥45,000</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">history</span>
+                                値下げ履歴なし
+                            </span>
+</div>
+<p class="text-[10px] text-zinc-400 mt-2">最終更新: 3日前</p>
+</div>
+<div class="flex flex-col gap-2">
+<button class="signature-gradient text-white text-xs font-bold px-4 py-2 rounded-full hover:scale-105 transition-transform active:scale-95 whitespace-nowrap">
+                            今すぐ再出品
+                        </button>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex items-center gap-4 shadow-sm shadow-red-900/5 group">
+<div class="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+<img alt="Headphones" class="w-full h-full object-cover" data-alt="Premium wireless noise cancelling headphones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK7ocY3Ph7GXtdhRfLFXin0uKItEB3_-MKUhqrmUTCuTucVMcV3K14adwjqqGTBtfLyb9tURNj5QaFX6rdU1wLpdV_Fimv1RaiVyaPZ-0K_OGL79OkFav0DTcHneHpJ60qc6FiDYfE21gF319JynVjtH6q_CCKJQoPu_8NU6FlY0wlIN7PeH_NVLfEEutRPSERhof7Jm3KxCBS_OIkciSomE9DkafMhRqNsk1qcP7KP_d19LokKgPBeFEC_ZqGfwvZq-5wa9O47XQ"/>
+</div>
+<div class="flex-grow min-w-0">
+<div class="flex justify-between items-start mb-1">
+<h4 class="text-sm font-bold truncate pr-4">ノイズキャンセリングヘッドホン ほぼ新品</h4>
+<span class="flex-shrink-0 px-2 py-0.5 bg-tertiary-container text-white text-[10px] font-bold rounded-sm">出品中</span>
+</div>
+<div class="flex items-center gap-3 text-xs text-on-surface-variant">
+<span class="font-headline font-semibold text-on-surface">¥18,900</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-primary">priority_high</span>
+                                反応低下中
+                            </span>
+</div>
+<p class="text-[10px] text-zinc-400 mt-2">最終更新: 5日前</p>
+</div>
+<div class="flex flex-col gap-2">
+<button class="signature-gradient text-white text-xs font-bold px-4 py-2 rounded-full hover:scale-105 transition-transform active:scale-95 whitespace-nowrap">
+                            今すぐ再出品
+                        </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 glass-header border-t border-zinc-100 dark:border-zinc-800 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-colors active:scale-90 duration-150 p-2" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">ホーム</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-colors active:scale-90 duration-150 p-2" href="#">
+<span class="material-symbols-outlined">content_copy</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">クローン</span>
+</a>
+<a class="flex flex-col items-center justify-center text-red-700 dark:text-red-500 font-bold hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-colors active:scale-90 duration-150 p-2" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_box</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">出品</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl transition-colors active:scale-90 duration-150 p-2" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-noto-sans-jp text-[10px] font-medium tracking-tight">スケジュール</span>
+</a>
+</nav>
+</body></html>
