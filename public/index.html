@@ -2122,6 +2122,10 @@ function mergeMercariApiPartial(partial, api) {
     out.price = pp;
   }
   if (partial.likesCount != null) out.likesCount = partial.likesCount;
+  ['category', 'condition', 'shippingPayer', 'shippingMethod', 'shippingFrom', 'shippingDays'].forEach((k) => {
+    const v = partial[k];
+    if (v != null && String(v).trim() !== '') out[k] = v;
+  });
   return out;
 }
 
@@ -2130,9 +2134,11 @@ async function enrichCloneDataFromApi(data) {
   const url = norm.url || (norm.itemId ? `https://jp.mercari.com/item/${norm.itemId}` : '');
   if (!url || !/\/item\/m\w+/i.test(url)) return norm;
 
+  const nonEmpty = (v) => v != null && String(v).trim() !== '';
   const lacksPrice = norm.currentPrice == null || norm.currentPrice === 0;
-  const lacksMeta = !norm.category || !norm.condition ||
-    (!norm.shippingPayer && !norm.shippingMethod && !norm.shippingFrom);
+  const hasShippingMeta = nonEmpty(norm.shippingPayer) || nonEmpty(norm.shippingMethod) ||
+    nonEmpty(norm.shippingFrom) || nonEmpty(norm.shippingDays);
+  const lacksMeta = !nonEmpty(norm.category) || !nonEmpty(norm.condition) || !hasShippingMeta;
   if (!lacksPrice && !lacksMeta) return norm;
 
   const q = encodeURIComponent(url);
@@ -2533,8 +2539,8 @@ function copyToClipboard(msg) {
 // ── PWA ──
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pwaPrompt = e; });
 
-/** メルカリ商品ページ用: __NEXT_DATA__ から価格・カテゴリ・状態・配送まで取得して clone_data で渡す */
-const MERCARI_CLONE_BOOKMARKLET_FULL = 'javascript:(function(){function F(o,d){if(!o||typeof o!==\'object\'||d>6)return null;if(o.id&&(o.name||o.title)&&o.price!==undefined)return o;for(var k in o){var x=F(o[k],d+1);if(x)return x}return null}function ex(){var idm=location.pathname.match(/\\/item\\/(m\\w+)/),itemId=idm?idm[1]:null,data={url:location.href,itemId:itemId};var N=document.getElementById(\'__NEXT_DATA__\');if(N){try{var nd=JSON.parse(N.textContent),item=(nd.props&&nd.props.pageProps&&(nd.props.pageProps.item||(nd.props.pageProps.itemResponse&&nd.props.pageProps.itemResponse.item)||(nd.props.pageProps.data&&nd.props.pageProps.data.item)))||F(nd.props,0);if(item){var imgs=[];(item.photos||[]).forEach(function(p){var u=p.imageUrl||p.image_url||p.url||(typeof p===\'string\'?p:\'\');if(u)imgs.push(String(u).split(\'?\')[0])});var cats=item.categories||item.itemCategoryGroupList||[],cat=Array.isArray(cats)?cats.map(function(c){return c.name||c.displayName||\'\'}).filter(Boolean).join(\' > \'):\'\';var condMap={1:\'新品・未使用\',2:\'未使用に近い\',3:\'目立った傷や汚れなし\',4:\'やや傷や汚れあり\',5:\'傷や汚れあり\',6:\'全体的に状態が悪い\'};var c0=item.itemCondition||item.item_condition||{},cid=item.itemConditionId||item.item_condition_id||c0.id,cond=c0.name||c0.displayName||condMap[cid]||\'\';var p0=item.shippingPayer||item.shipping_payer||{},pid=item.shippingPayerId||item.shipping_payer_id||p0.id,sp=p0.name||(pid===1?\'送料込み（出品者負担）\':pid===2?\'着払い（購入者負担）\':\'\');var m0=item.shippingMethod||item.shipping_method||item.shipping||{},sm=m0.name||m0.displayName||\'\';var f0=item.shippingFromArea||item.shipping_from_area||{},sf=f0.name||f0.displayName||\'\';var d0=item.shippingDuration||item.shipping_duration||{},sd=d0.name||d0.displayName||\'\';data.title=item.name||item.title;data.description=item.description||\'\';data.currentPrice=item.price;data.price=item.price;data.category=cat;data.condition=cond;data.shippingPayer=sp;data.shippingMethod=sm;data.shippingFrom=sf;data.shippingDays=sd;data.images=imgs}}catch(e){}}if(!data.title){data.title=(document.querySelector(\'h1[data-testid="name"]\')||{}).textContent||document.title;var pe=(document.querySelector(\'[data-testid="price"]\')||{}).textContent;if(pe)data.currentPrice=data.price=parseInt(pe.replace(/[^\\d]/g,\'\'),10)||0}var enc=btoa(encodeURIComponent(JSON.stringify(data)).replace(/%([0-9A-F]{2})/g,function(_,p){return String.fromCharCode(parseInt(p,16))}));location.href=\'https://furimora-assist.vercel.app/?clone_data=\'+encodeURIComponent(enc)}ex()})();';
+/** メルカリ商品ページ用: 指定の高情報ブックマークレット（clone_data に category / condition / shipping* を含む） */
+const MERCARI_CLONE_BOOKMARKLET_FULL = `javascript:(function(){function extract(){const idMatch=window.location.pathname.match(/\\/item\\/(m\\w+)/);const itemId=idMatch?idMatch[1]:null;let data={itemId,url:window.location.href};const ndEl=document.getElementById('__NEXT_DATA__');if(ndEl){try{const nd=JSON.parse(ndEl.textContent);const item=nd?.props?.pageProps?.item||nd?.props?.pageProps?.itemResponse?.item||nd?.props?.pageProps?.data?.item;if(item){data.title=item.name||item.title;data.price=item.price;data.description=item.description;data.images=(item.photos||[]).map(p=>(p.imageUrl||p.url||p).split('?')[0]);data.category=(item.categories||[]).map(c=>c.name).join(' > ');data.condition=item.itemCondition?.name||'';data.shippingPayer=item.shippingPayer?.name||'';data.shippingMethod=item.shippingMethod?.name||'';data.shippingFrom=item.shippingFromArea?.name||'';data.shippingDays=item.shippingDuration?.name||''}}catch(e){}}if(!data.title)data.title=document.querySelector('h1[data-testid="name"]')?.textContent||document.title.replace(/\\s*[-\\u2013]\\s*メルカリ.*$/,'');if(!data.price||data.price===0){const pEl=document.querySelector('[data-testid="price"]')||document.querySelector('[class*="merPrice"]');data.price=pEl?parseInt(pEl.textContent.replace(/[^\\d]/g,'')):0}if(!data.description)data.description=document.querySelector('[data-testid="description"]')?.textContent;if(!data.images||data.images.length===0){data.images=Array.from(new Set([...document.querySelectorAll('img')].map(img=>img.src).filter(src=>src&&itemId&&src.includes('mercdn.net')&&src.includes(itemId)))).map(s=>s.replace('/thumb/','/orig/'))}const labels={'カテゴリー':'category','商品の状態':'condition','配送料の負担':'shippingPayer','配送の方法':'shippingMethod','発送元の地域':'shippingFrom','発送までの日数':'shippingDays'};if(!data.condition){document.querySelectorAll('tr, dl, div[class*="row"]').forEach(row=>{const text=row.innerText;for(const [label,key] of Object.entries(labels)){if(text.includes(label)&&!data[key]){data[key]=text.replace(label,'').trim().split('\\n')[0]}}})}const jsonStr=JSON.stringify(data);const encoded=btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g,(match,p1)=>String.fromCharCode('0x'+p1)));window.location.href='https://furimora-assist.vercel.app/?clone_data='+encodeURIComponent(encoded)}extract()})();`;
 
 function copyBookmarklet() {
   const code = document.getElementById('bookmarklet-code')?.textContent || '';
