@@ -5,6 +5,15 @@
 
 (function () {
   'use strict';
+  const APP_URL = 'https://furimora.vercel.app';
+  const LEGACY_APP_URL = 'https://furimora-assist.vercel.app';
+
+  function normalizeAppUrl(raw) {
+    const value = String(raw || '').trim();
+    if (!value) return APP_URL;
+    if (value.startsWith(LEGACY_APP_URL)) return value.replace(LEGACY_APP_URL, APP_URL);
+    return value;
+  }
 
   if (document.getElementById('furimora-widget')) return;
 
@@ -324,7 +333,8 @@
       setTimeout(() => {
         const freshData = extractItemData();
         chrome.storage.local.get('furimora_app_url', ({ furimora_app_url }) => {
-          const appUrl = furimora_app_url || 'https://furimora.vercel.app';
+          const appUrl = normalizeAppUrl(furimora_app_url);
+          if (furimora_app_url !== appUrl) chrome.storage.local.set({ furimora_app_url: appUrl });
           const cloneUrl = buildCloneUrl(appUrl, freshData);
           chrome.runtime.sendMessage({ type: 'OPEN_TAB', url: cloneUrl });
           showStatus('✓ フリモーラでクローン作成画面を開きます', 'success');
