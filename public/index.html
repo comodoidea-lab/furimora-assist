@@ -859,70 +859,6 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- モバイル連携 -->
-    <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
-      <div class="px-5 py-3 bg-surface-container-low">
-        <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">モバイル連携</p>
-      </div>
-      <div class="divide-y divide-surface-container">
-
-        <!-- 推奨: クリップボード -->
-        <div class="px-5 py-4 space-y-2">
-          <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-tertiary mt-0.5">content_paste_go</span>
-            <div>
-              <p class="text-sm font-bold">📱 クリップボード貼り付け（iOS・Android 共通・推奨）</p>
-              <p class="text-[11px] text-on-surface-variant mt-0.5">最も確実な方法。追加設定不要</p>
-            </div>
-          </div>
-          <div class="bg-surface-container rounded-xl px-4 py-3 space-y-1.5">
-            <p class="text-[11px] text-on-surface-variant">① メルカリ商品ページのURLをコピー（アドレスバー長押し）</p>
-            <p class="text-[11px] text-on-surface-variant">② フリモーラを開くとバナーが自動表示 → 「取得」タップ</p>
-            <p class="text-[11px] text-on-surface-variant">または「クリップボードから貼り付けて取得」ボタンをタップ</p>
-          </div>
-        </div>
-
-        <!-- iOS ブックマークレット -->
-        <div class="px-5 py-4 space-y-2">
-          <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-on-surface-variant mt-0.5">bookmark_add</span>
-            <div>
-              <p class="text-sm font-bold">iOS Safari ブックマークレット</p>
-              <p class="text-[11px] text-on-surface-variant mt-0.5">設定すればワンタップ。iOSキーボードの自動修正に注意</p>
-            </div>
-          </div>
-          <div class="bg-surface-container rounded-xl px-4 py-3 space-y-2">
-            <p class="text-[11px] text-on-surface-variant">① 下のコードをコピー</p>
-            <div class="flex items-center gap-2">
-              <code id="bookmarklet-code" class="flex-1 text-[10px] bg-surface-container-high rounded-lg px-3 py-2 break-all text-on-surface font-mono select-all">javascript:(function(){function extract(){const idMatch=window.location.pathname.match(/\/item\/(m\w+)/);const itemId=idMatch?idMatch[1]:null;let data={};const ndEl=document.getElementById('__NEXT_DATA__');if(ndEl){try{const nd=JSON.parse(ndEl.textContent);const item=nd?.props?.pageProps?.item||nd?.props?.pageProps?.itemResponse?.item||nd?.props?.pageProps?.data?.item;if(item){data={title:item.name||item.title,price:item.price,description:item.description,images:(item.photos||[]).map(p=>(p.imageUrl||p.url||p).split('?')[0])}}}catch(e){}}if(!data.title){data={title:document.querySelector('h1[data-testid="name"]')?.textContent||document.title,price:document.querySelector('[data-testid="price"]')?.textContent.replace(/[^\d]/g,''),description:document.querySelector('[data-testid="description"]')?.textContent,images:Array.from(new Set([...document.querySelectorAll('img')].map(img=>img.src).filter(src=>src.includes('mercdn.net')&&src.includes(itemId)))).map(s=>s.replace('/thumb/','/orig/'))}}const encoded=btoa(encodeURIComponent(JSON.stringify(data)).replace(/%([0-9A-F]{2})/g,(m,p)=>String.fromCharCode('0x'+p)));window.location.href='https://furimora-assist.vercel.app/?clone_data='+encodeURIComponent(encoded)}extract()})();</code>
-              <button onclick="copyBookmarklet()" class="shrink-0 text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors">コピー</button>
-            </div>
-            <p class="text-[11px] text-on-surface-variant">② このページをSafariでブックマーク登録</p>
-            <p class="text-[11px] text-on-surface-variant">③ ブックマーク編集 → URL欄を全選択して削除 → 貼り付け</p>
-            <p class="text-[11px] font-bold text-error">⚠️ 「JavaScript」と大文字にならないよう注意。なった場合は手動で「j」を小文字に修正</p>
-            <p class="text-[11px] text-on-surface-variant">④ メルカリ商品ページでブックマークをタップ → 自動でクローン取得</p>
-          </div>
-        </div>
-
-        <!-- Android PWA Share Target -->
-        <div class="px-5 py-4 space-y-2">
-          <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined text-on-surface-variant mt-0.5">share</span>
-            <div>
-              <p class="text-sm font-bold">Android PWA 共有連携</p>
-              <p class="text-[11px] text-on-surface-variant mt-0.5">Chrome 112以上が必要。インストール後に一度再インストールが必要</p>
-            </div>
-          </div>
-          <div class="bg-surface-container rounded-xl px-4 py-3 space-y-1.5">
-            <p class="text-[11px] text-on-surface-variant">① 既にインストール済みの場合: 一度削除して再インストール（share_target登録のため）</p>
-            <p class="text-[11px] text-on-surface-variant">② 下の「ホーム画面に追加」から新規インストール</p>
-            <p class="text-[11px] text-on-surface-variant">③ メルカリ商品ページで共有ボタン →「フリモーラ」を選択</p>
-            <p class="text-[11px] font-bold text-on-surface-variant">※ 共有先に表示されない場合はクリップボード方式を使用してください</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden">
       <div class="px-5 py-3 bg-surface-container-low">
         <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">アプリについて</p>
@@ -3711,11 +3647,6 @@ function copyToClipboard(msg) {
 // ── PWA ──
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); pwaPrompt = e; });
 
-function copyBookmarklet() {
-  const code = document.getElementById('bookmarklet-code')?.textContent || '';
-  navigator.clipboard.writeText(code).then(() => showToast('コピーしました')).catch(() => showToast('コピーに失敗しました'));
-}
-
 function installPWA() {
   if (pwaPrompt) {
     pwaPrompt.prompt();
@@ -3784,7 +3715,7 @@ document.addEventListener('DOMContentLoaded', () => {
     history.replaceState({}, '', window.location.pathname);
     if (autofetch && u) setTimeout(() => fetchCloneData(), 300);
   } else {
-    // モバイル連携: ブックマークレット(iOS) / Share Target(Android PWA) — page=clone と排他
+    // モバイル共有連携: ブックマークレット(iOS) / Share Target(Android PWA) — page=clone と排他
     const mercariRaw = params.get('mercari_url');
     const mercariUrlNorm = normalizeIncomingMercariUrl(mercariRaw);
     const hasItemPath = /\/item\/m\w+/i.test(mercariUrlNorm);
