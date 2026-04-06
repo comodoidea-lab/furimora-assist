@@ -76,6 +76,9 @@ tailwind.config = {
     overscroll-behavior: none;
     width: 100%;
     max-width: 100vw;
+    /* Android: body に overflow-x:hidden + touch-action:manipulation を併用すると縦スクロールが壊れる事例があるため分離 */
+  }
+  html.ios-touch-lock body {
     overflow-x: hidden;
     touch-action: manipulation;
   }
@@ -419,6 +422,7 @@ tailwind.config = {
       </label>
       <div class="flex flex-col sm:flex-row gap-3">
         <input id="clone-url-input" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://jp.mercari.com/item/m..."
+          onpaste="onCloneUrlPaste(event)"
           class="flex-1 bg-surface-container rounded-full px-5 py-3.5 border-none focus:ring-2 focus:ring-primary/20 text-sm outline-none placeholder:text-on-surface-variant/50"/>
         <button onclick="fetchCloneData()" id="clone-fetch-btn"
           class="bg-signature-gradient text-white px-6 py-3.5 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all text-sm whitespace-nowrap">
@@ -1420,6 +1424,9 @@ let pwaPrompt = null;
 let downloadDirHandle = null;
 /** 全写真ZIP保存の fetch / UI キャンセル用 */
 let cloneZipAbortController = null;
+/** iOS: Clipboard API を使わず、URL欄へのネイティブ貼り付け後に自動取得するフラグ */
+let cloneIOSPastePendingFetch = false;
+let cloneIOSPastePendingTimer = null;
 /** ZIP作成後、ユーザー操作で保存開始するための一時URL */
 let cloneZipPreparedObjectUrl = '';
 let cloneZipPreparedFileName = '';
@@ -2562,6 +2569,13 @@ async function _loadHandleFromIDB() {
 
 // ── Navigation ──
 function navigate(page, navOpts = {}) {
+  if (page !== 'clone') {
+    cloneIOSPastePendingFetch = false;
+    if (cloneIOSPastePendingTimer) {
+      clearTimeout(cloneIOSPastePendingTimer);
+      cloneIOSPastePendingTimer = null;
+    }
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + page);
   if (target) target.classList.add('active');
@@ -3022,7 +3036,48 @@ function useBannerUrl() {
   }
 }
 
+function clearCloneIOSPastePending() {
+  cloneIOSPastePendingFetch = false;
+  if (cloneIOSPastePendingTimer) {
+    clearTimeout(cloneIOSPastePendingTimer);
+    cloneIOSPastePendingTimer = null;
+  }
+}
+
+/** iOS: readText() がシステムの「ペースト」許可UIを出すため、ネイティブ貼り付け→自動取得に切り替え */
+function onCloneUrlPaste() {
+  if (!cloneIOSPastePendingFetch) return;
+  clearCloneIOSPastePending();
+  setTimeout(() => {
+    const input = document.getElementById('clone-url-input');
+    if (!input) return;
+    const raw = input.value.trim();
+    if (!raw) return;
+    if (!mightContainMercariUrl(raw)) {
+      showToast('メルカリの商品URL（jp.mercari.com または merc.li）が見つかりません');
+      return;
+    }
+    fetchCloneData();
+  }, 0);
+}
+
 async function pasteAndFetch() {
+  if (isIOSDevice()) {
+    clearCloneIOSPastePending();
+    cloneIOSPastePendingFetch = true;
+    cloneIOSPastePendingTimer = setTimeout(() => clearCloneIOSPastePending(), 120000);
+    const input = document.getElementById('clone-url-input');
+    if (input) {
+      input.focus();
+      try {
+        input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch {
+        input.scrollIntoView();
+      }
+    }
+    showToast('上のURL欄を長押しして「ペースト」するか、キーボードの「貼り付け」で貼り付けてください（貼り付け後に自動で取得します）');
+    return;
+  }
   try {
     const text = await navigator.clipboard.readText();
     const trimmed = text.trim();
@@ -3503,6 +3558,7 @@ function createClone() {
 }
 
 function resetClone() {
+  clearCloneIOSPastePending();
   clonedData = {};
   document.getElementById('clone-step-1').classList.remove('hidden');
   ['clone-step-2','clone-step-3'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -3673,6 +3729,7 @@ function installPWA() {
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
+  if (isIOSDevice()) document.documentElement.classList.add('ios-touch-lock');
   loadStorageData();
   loadStats();
   renderAlerts();
