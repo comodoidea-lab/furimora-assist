@@ -932,7 +932,7 @@ tailwind.config = {
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-xs font-semibold text-on-surface-variant">カテゴリ</label>
-              <select id="ni-category" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
+              <select id="ni-category" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none" onchange="syncNiCategoryFromMain()">
                 <option>その他</option><option>ファッション</option><option>家電</option>
                 <option>本・漫画</option><option>おもちゃ</option><option>スポーツ</option>
                 <option>ゲーム</option><option>DVD / Blu-ray</option><option>CD</option>
@@ -1026,8 +1026,10 @@ tailwind.config = {
           </div>
           <div>
             <label class="text-xs font-semibold text-on-surface-variant">カテゴリ</label>
-            <select id="ni-desc-category" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
-              <option>その他</option><option>ファッション</option><option>家電</option><option>本・漫画</option><option>ゲーム</option><option>DVD / Blu-ray</option><option>CD</option>
+            <select id="ni-desc-category" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none" onchange="syncNiCategoryFromDesc()">
+              <option>その他</option><option>ファッション</option><option>家電</option>
+              <option>本・漫画</option><option>おもちゃ</option><option>スポーツ</option>
+              <option>ゲーム</option><option>DVD / Blu-ray</option><option>CD</option>
             </select>
           </div>
         </div>
@@ -1156,8 +1158,34 @@ tailwind.config = {
   </div>
 </div>
 
+<!-- 出品一覧・メルカリURL -->
+<div id="item-url-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('item-url-modal')">
+  <div class="modal-sheet w-full" style="max-width:400px">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-headline font-bold text-lg">商品URLを変更</h3>
+      <button type="button" onclick="closeModal('item-url-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    <p class="text-xs text-on-surface-variant mb-1">対象</p>
+    <p class="text-sm font-bold line-clamp-2 mb-4" id="item-url-modal-title-preview"></p>
+    <label class="text-xs font-semibold text-on-surface-variant">メルカリ商品URL または 商品ID（mで始まる）</label>
+    <input id="item-url-input" type="text" inputmode="url" autocomplete="off" placeholder="https://jp.mercari.com/item/m12345678901"
+      class="mt-1 w-full bg-surface-container border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"/>
+    <p class="text-[10px] text-on-surface-variant mt-2">空にして保存すると紐づけを解除します。一覧のサムネイルからも開けます。</p>
+    <div class="flex gap-3 mt-5">
+      <button type="button" onclick="closeModal('item-url-modal')" class="flex-1 py-3 rounded-full border border-surface-container-highest font-bold text-sm">キャンセル</button>
+      <button type="button" onclick="saveItemUrlFromModal()" class="flex-1 py-3 rounded-full font-bold text-sm text-white bg-primary shadow-lg">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- 出品一覧・その他メニュー（プルダウン） -->
-<div id="item-more-menu" class="hidden fixed z-[110] w-[192px] bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-surface-container py-1.5" role="menu">
+<div id="item-more-menu" class="hidden fixed z-[110] w-[200px] bg-surface-container-lowest rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-surface-container py-1.5" role="menu">
+  <button type="button" role="menuitem" onclick="openItemUrlModal()"
+    class="w-full text-left px-4 py-2.5 text-sm font-bold text-on-surface hover:bg-surface-container transition-colors flex items-center gap-2">
+    <span class="material-symbols-outlined text-lg text-primary">link</span>URLを変更
+  </button>
   <button type="button" role="menuitem" onclick="openItemSoldConfirm()"
     class="w-full text-left px-4 py-2.5 text-sm font-bold text-on-surface hover:bg-surface-container transition-colors flex items-center gap-2">
     <span class="material-symbols-outlined text-lg text-tertiary">check_circle</span>売却済みにする
@@ -1313,6 +1341,7 @@ let discountModalBasePrice = 0;
 let discountInputMode = 'yen';
 /** 出品一覧「…」メニュー対象 ID */
 let itemMenuTargetId = null;
+let itemUrlEditId = null;
 /** item-confirm-modal: 'sold' | 'delete' */
 let itemConfirmType = null;
 let itemConfirmId = null;
@@ -1436,7 +1465,58 @@ function loadItems() {
 }
 function saveItems() { localStorage.setItem('furimora_items', JSON.stringify(ITEMS)); }
 
-/** 出品データから jp.mercari.com の商品URLを組み立てる */
+/** クローン/APIのカテゴリ文字列を出品アシストのセレクト値に寄せる（CD・DVD 混同を避ける） */
+function mapIncomingCategoryToAppSelect(raw) {
+  if (raw == null || raw === '') return 'その他';
+  const s = String(raw).trim();
+  const EXACT = ['その他', 'ファッション', '家電', '本・漫画', 'おもちゃ', 'スポーツ', 'ゲーム', 'DVD / Blu-ray', 'CD'];
+  if (EXACT.includes(s)) return s;
+  if (/ブルーレイ|Blu-ray|DVD|映画|4K|UHD|スチール|フィルム|COLLECTION|FILM/i.test(s)) return 'DVD / Blu-ray';
+  if (/ゲーム|ソフト|プレステ|Switch|PS[45]|ニンテンドー/i.test(s)) return 'ゲーム';
+  if (/おもちゃ|フィギュア|ぬいぐるみ/i.test(s)) return 'おもちゃ';
+  if (/スポーツ|ゴルフ|アウトドア/i.test(s)) return 'スポーツ';
+  if (/本|漫画|コミック|小説|書籍/i.test(s)) return '本・漫画';
+  if (/ファッション|服|靴|バッグ|アパレル/i.test(s)) return 'ファッション';
+  if (/家電|スマホ|PC|カメラ/i.test(s)) return '家電';
+  if (/\bCD\b|音楽|アルバム/i.test(s) && !/DVD|ブルーレイ|Blu|映画/i.test(s)) return 'CD';
+  const SUB = ['DVD / Blu-ray', 'ファッション', 'ゲーム', '本・漫画', '家電', 'おもちゃ', 'スポーツ'];
+  for (const opt of SUB) {
+    if (s.includes(opt)) return opt;
+  }
+  if (s.includes('CD') && !/DVD|ブルーレイ|Blu/i.test(s)) return 'CD';
+  return 'その他';
+}
+
+function applyNiCategoryToBoth(rawCategory) {
+  const v = mapIncomingCategoryToAppSelect(rawCategory);
+  const m = document.getElementById('ni-category');
+  const d = document.getElementById('ni-desc-category');
+  if (m) m.value = v;
+  if (d) d.value = v;
+  return v;
+}
+
+function syncNiCategoryFromMain() {
+  const m = document.getElementById('ni-category');
+  const d = document.getElementById('ni-desc-category');
+  if (m && d) d.value = m.value;
+}
+
+function syncNiCategoryFromDesc() {
+  const m = document.getElementById('ni-category');
+  const d = document.getElementById('ni-desc-category');
+  if (m && d) m.value = d.value;
+}
+
+function parseMercariUrlInput(raw) {
+  const s = (raw || '').trim();
+  if (!s) return { clear: true };
+  const u1 = s.match(/^https?:\/\/jp\.mercari\.com\/item\/(m[\w-]+)/i);
+  if (u1) return { mercariUrl: `https://jp.mercari.com/item/${u1[1]}`, mercariItemId: u1[1] };
+  if (/^m[\w-]+$/i.test(s)) return { mercariUrl: `https://jp.mercari.com/item/${s}`, mercariItemId: s };
+  return null;
+}
+
 function mercariListingUrl(item) {
   if (!item || typeof item !== 'object') return '';
   const raw = (item.mercariUrl || item.url || '').trim();
@@ -1458,11 +1538,58 @@ function openMercariListingFromItem(id) {
   loadItems();
   const item = ITEMS.find((i) => i.id === id);
   const url = item ? mercariListingUrl(item) : '';
-  if (!url) {
-    showToast('メルカリの商品ページに紐づいていません');
+  if (url) {
+    window.open(url, '_blank', 'noopener,noreferrer');
     return;
   }
-  window.open(url, '_blank', 'noopener,noreferrer');
+  if (!item) return;
+  itemUrlEditId = id;
+  document.getElementById('item-url-input').value = '';
+  document.getElementById('item-url-modal-title-preview').textContent = item.title || '';
+  document.getElementById('item-url-modal').classList.add('open');
+}
+
+function openItemUrlModal() {
+  const id = itemMenuTargetId;
+  closeItemMoreMenu();
+  if (!id) return;
+  loadItems();
+  const item = ITEMS.find((i) => i.id === id);
+  if (!item) return;
+  itemUrlEditId = id;
+  document.getElementById('item-url-input').value = mercariListingUrl(item) || '';
+  document.getElementById('item-url-modal-title-preview').textContent = item.title || '';
+  document.getElementById('item-url-modal').classList.add('open');
+}
+
+function saveItemUrlFromModal() {
+  if (itemUrlEditId == null) return;
+  loadItems();
+  const item = ITEMS.find((i) => i.id === itemUrlEditId);
+  if (!item) return;
+  const raw = (document.getElementById('item-url-input')?.value || '').trim();
+  if (!raw) {
+    delete item.mercariUrl;
+    delete item.mercariItemId;
+    delete item.url;
+    saveItems();
+    renderItems();
+    closeModal('item-url-modal');
+    showToast('商品URLの紐づけを解除しました');
+    return;
+  }
+  const parsed = parseMercariUrlInput(raw);
+  if (!parsed) {
+    showToast('メルカリの商品URL（jp.mercari.com/item/m…）または商品IDを入力してください');
+    return;
+  }
+  item.mercariUrl = parsed.mercariUrl;
+  item.mercariItemId = parsed.mercariItemId;
+  delete item.url;
+  saveItems();
+  renderItems();
+  closeModal('item-url-modal');
+  showToast('商品URLを保存しました');
 }
 
 function getDaysSinceListed(listedAt) {
@@ -1526,9 +1653,8 @@ function renderItems() {
       ? `<img src="${item.images[0]}" class="w-full h-full object-cover pointer-events-none" onerror="this.style.display='none'">`
       : `<span class="material-symbols-outlined text-2xl text-on-surface-variant/30 pointer-events-none">image</span>`;
     const hasMercari = !!mercariListingUrl(item);
-    const thumbBox = hasMercari
-      ? `<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0 flex items-center justify-center cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all ring-0 hover:ring-2 hover:ring-primary/30" role="button" tabindex="0" title="メルカリで開く" onclick="openMercariListingFromItem(${item.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMercariListingFromItem(${item.id});}">${thumb}</div>`
-      : `<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0 flex items-center justify-center">${thumb}</div>`;
+    const thumbTitle = hasMercari ? 'メルカリで開く' : 'URLを設定（タップ）';
+    const thumbBox = `<div class="w-14 h-14 rounded-md overflow-hidden bg-surface-container flex-shrink-0 flex items-center justify-center cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all ring-0 hover:ring-2 hover:ring-primary/30" role="button" tabindex="0" title="${thumbTitle}" onclick="openMercariListingFromItem(${item.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMercariListingFromItem(${item.id});}">${thumb}</div>`;
     return `<div class="bg-surface-container-lowest rounded-lg p-3.5 flex items-center gap-3 shadow-sm">
       ${thumbBox}
       <div class="flex-1 min-w-0">
@@ -1584,12 +1710,7 @@ function openRelistItemModal(id) {
   document.getElementById('ni-desc-title').value = item.title || '';
   document.getElementById('ni-ai-text').value = item.description || '';
   populateTemplateSelect();
-  const catSel = document.getElementById('ni-category');
-  if (catSel && item.category) {
-    [...catSel.options].forEach((o) => {
-      if (o.value === item.category || item.category.includes(o.value) || o.value.includes(item.category)) catSel.value = o.value;
-    });
-  }
+  applyNiCategoryToBoth(item.category);
   const condSel = document.getElementById('ni-condition');
   if (condSel && item.condition) {
     [...condSel.options].forEach((o) => {
@@ -1783,7 +1904,7 @@ function toggleItemMoreMenu(ev, id) {
   }
   itemMenuTargetId = id;
   const rect = ev.currentTarget.getBoundingClientRect();
-  const mw = 192;
+  const mw = 200;
   let left = rect.right - mw;
   if (left < 8) left = 8;
   if (left + mw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - mw - 8);
@@ -1878,10 +1999,7 @@ function openNewItemModal(draftData) {
   document.getElementById('ni-desc-title').value = draftData?.title || '';
   document.getElementById('ni-ai-text').value = draftData?.description || '';
   populateTemplateSelect();
-  if (draftData?.category) {
-    const sel = document.getElementById('ni-category');
-    [...sel.options].forEach(o => { if (draftData.category.includes(o.value) || o.value.includes(draftData.category)) sel.value = o.value; });
-  }
+  applyNiCategoryToBoth(draftData?.category);
   if (draftData?.condition) {
     const sel = document.getElementById('ni-condition');
     [...sel.options].forEach(o => { if (o.value === draftData.condition) sel.value = o.value; });
@@ -1907,6 +2025,8 @@ function switchItemTab(tab) {
       btn.classList.toggle('border-transparent', t!==tab); btn.classList.toggle('text-on-surface-variant', t!==tab);
     }
   });
+  if (tab === 'desc') syncNiCategoryFromMain();
+  else if (tab === 'price') syncNiCategoryFromDesc();
 }
 
 function setBuffer(amount) {
@@ -1980,6 +2100,9 @@ function combineDesc() {
 function saveNewItem() {
   const title = document.getElementById('ni-title').value.trim();
   if (!title) { showToast('商品タイトルを入力してください'); switchItemTab('price'); return; }
+  const descTabEl = document.getElementById('item-tab-desc');
+  if (descTabEl && !descTabEl.classList.contains('hidden')) syncNiCategoryFromDesc();
+  else syncNiCategoryFromMain();
   const min = parseInt(document.getElementById('ni-minprice').value)||0;
   const buf = parseInt(document.getElementById('ni-buffer').value)||0;
   const startPrice = min + buf;
@@ -2197,6 +2320,7 @@ function closeModal(id) {
     itemConfirmId = null;
     itemConfirmType = null;
   }
+  if (id === 'item-url-modal') itemUrlEditId = null;
 }
 
 // ── Render Notifications ──
