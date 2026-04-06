@@ -1064,12 +1064,12 @@ tailwind.config = {
       <div class="grid grid-cols-3 gap-3">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant">出品開始日</label>
-          <input id="ni-listed-at" type="date" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"/>
+          <input id="ni-listed-at" type="date" oninput="updateNiScheduleTab()" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"/>
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant">値下げ開始</label>
           <div class="flex items-center gap-1 mt-1">
-            <input id="ni-discount-start" type="number" value="7"
+            <input id="ni-discount-start" type="number" value="7" oninput="updateNiScheduleTab()"
               class="w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm font-bold outline-none"/>
             <span class="text-xs text-on-surface-variant flex-shrink-0">日後</span>
           </div>
@@ -1077,17 +1077,38 @@ tailwind.config = {
         <div>
           <label class="text-xs font-semibold text-on-surface-variant">値下げ幅/頻度</label>
           <div class="flex items-center gap-1 mt-1">
-            <input id="ni-discount-amount" type="number" value="100"
+            <input id="ni-discount-amount" type="number" value="100" oninput="updateNiScheduleTab()"
               class="w-14 bg-surface-container border-none rounded-xl px-2 py-2.5 text-sm font-bold outline-none"/>
             <span class="text-xs text-on-surface-variant">円/</span>
-            <input id="ni-discount-freq" type="number" value="1"
+            <input id="ni-discount-freq" type="number" value="1" oninput="updateNiScheduleTab()"
               class="w-10 bg-surface-container border-none rounded-xl px-2 py-2.5 text-sm font-bold outline-none"/>
             <span class="text-xs text-on-surface-variant">日</span>
           </div>
         </div>
       </div>
-      <div class="bg-primary/5 rounded-xl p-4 text-[11px] text-on-surface-variant">
-        💡 「価格」タブで最低価格を入力すると、出品開始価格から最低価格まで自動で値下げスケジュールが計算されます。
+      <p id="ni-schedule-summary" class="text-[11px] text-on-surface font-medium bg-surface-container rounded-xl px-3 py-2"></p>
+      <div id="ni-schedule-hint" class="bg-primary/5 rounded-xl p-4 text-[11px] text-on-surface-variant">
+        💡 「価格」タブで<strong>最低価格</strong>を入力し、上記の<strong>出品開始日</strong>を設定すると、下に値下げカレンダーが表示されます（手数料・送料は価格タブの設定を使用）。
+      </div>
+      <div id="ni-schedule-table-wrap" class="hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">プレビュー</span>
+          <button type="button" onclick="copyNiSchedule()" class="text-[11px] font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">コピー</button>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-surface-container max-h-56 overflow-y-auto">
+          <table class="w-full text-left text-[11px]">
+            <thead class="bg-surface-container sticky top-0">
+              <tr>
+                <th class="py-2 px-2 font-bold">日付</th>
+                <th class="py-2 px-2 font-bold">出品日数</th>
+                <th class="py-2 px-2 font-bold">価格</th>
+                <th class="py-2 px-2 font-bold">手数料後</th>
+                <th class="py-2 px-2 font-bold">利益</th>
+              </tr>
+            </thead>
+            <tbody id="ni-schedule-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -2027,6 +2048,7 @@ function switchItemTab(tab) {
   });
   if (tab === 'desc') syncNiCategoryFromMain();
   else if (tab === 'price') syncNiCategoryFromDesc();
+  if (tab === 'schedule') updateNiScheduleTab();
 }
 
 function setBuffer(amount) {
@@ -2067,6 +2089,144 @@ function calcItemPrice() {
   set('ni-profit','¥'+profitStart.toLocaleString());
   set('ni-minprice-hint','¥'+min.toLocaleString());
   set('ni-profit-min','¥'+profitMin.toLocaleString());
+  updateNiScheduleTab();
+}
+
+/** 価格タブ・スケジュール欄の入力に連動した値下げプレビュー */
+function updateNiScheduleTab() {
+  const minP = parseInt(document.getElementById('ni-minprice')?.value, 10) || 0;
+  const buf = parseInt(document.getElementById('ni-buffer')?.value, 10) || 0;
+  const feePct = parseFloat(document.getElementById('ni-fee')?.value) || 10;
+  const ship = parseInt(document.getElementById('ni-shipping')?.value, 10) || 0;
+  const cost = parseInt(document.getElementById('ni-cost')?.value, 10) || 0;
+  const delay = Math.max(0, parseInt(document.getElementById('ni-discount-start')?.value, 10) || 0);
+  const step = Math.max(1, parseInt(document.getElementById('ni-discount-amount')?.value, 10) || 100);
+  const freq = Math.max(1, parseInt(document.getElementById('ni-discount-freq')?.value, 10) || 1);
+  const startDateStr = (document.getElementById('ni-listed-at')?.value || '').trim();
+
+  const startPrice = minP + buf;
+  const feeRate = feePct / 100;
+
+  const sumEl = document.getElementById('ni-schedule-summary');
+  const hint = document.getElementById('ni-schedule-hint');
+  const wrap = document.getElementById('ni-schedule-table-wrap');
+  const tbody = document.getElementById('ni-schedule-tbody');
+
+  if (sumEl) {
+    sumEl.textContent = `出品開始 ¥${startPrice.toLocaleString()}　最低 ¥${minP.toLocaleString()}　手数料 ${feePct}%　送料 ¥${ship.toLocaleString()}${cost > 0 ? `　仕入れ ¥${cost.toLocaleString()}` : ''}`;
+  }
+
+  if (!tbody || !hint || !wrap) return;
+
+  if (!minP || startPrice < 300 || !startDateStr) {
+    hint.classList.remove('hidden');
+    wrap.classList.add('hidden');
+    tbody.innerHTML = '';
+    return;
+  }
+
+  hint.classList.add('hidden');
+  wrap.classList.remove('hidden');
+
+  let startDate;
+  try {
+    startDate = new Date(startDateStr + 'T12:00:00');
+    if (Number.isNaN(startDate.getTime())) throw new Error('bad');
+  } catch {
+    hint.classList.remove('hidden');
+    wrap.classList.add('hidden');
+    tbody.innerHTML = '';
+    return;
+  }
+
+  const rows = [{ day: 0, date: new Date(startDate), price: startPrice, isMin: false }];
+  if (step > 0 && startPrice > minP) {
+    let dayOffset = delay;
+    let currentPrice = startPrice;
+    while (currentPrice > minP && dayOffset < 400) {
+      const newPrice = Math.max(minP, currentPrice - step);
+      const rowDate = new Date(startDate);
+      rowDate.setDate(rowDate.getDate() + dayOffset);
+      rows.push({ day: dayOffset, date: rowDate, price: newPrice, isMin: newPrice === minP });
+      currentPrice = newPrice;
+      dayOffset += freq;
+    }
+  }
+
+  const fmtDate = (d) =>
+    d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/');
+
+  tbody.innerHTML = rows
+    .map((r) => {
+      const net = Math.max(0, Math.floor(r.price * (1 - feeRate)) - ship);
+      const profit = cost > 0 ? net - cost : null;
+      const profitHtml =
+        profit === null
+          ? '—'
+          : `<span class="font-bold ${profit >= 0 ? 'text-tertiary' : 'text-error'}">${profit >= 0 ? '+' : ''}¥${profit.toLocaleString()}</span>`;
+      const dayLabel = r.day === 0 ? '初日' : `${r.day}日目`;
+      const rowCls = r.day === 0 ? 'bg-primary/5' : r.isMin ? 'bg-tertiary-container/30' : '';
+      return `<tr class="border-b border-surface-container ${rowCls}">
+      <td class="py-2 px-2 align-top">${fmtDate(r.date)}</td>
+      <td class="py-2 px-2 align-top text-on-surface-variant">${dayLabel}</td>
+      <td class="py-2 px-2 align-top font-bold">¥${r.price.toLocaleString()}</td>
+      <td class="py-2 px-2 align-top">¥${net.toLocaleString()}</td>
+      <td class="py-2 px-2 align-top">${profitHtml}</td>
+    </tr>`;
+    })
+    .join('');
+}
+
+function copyNiSchedule() {
+  const minP = parseInt(document.getElementById('ni-minprice')?.value, 10) || 0;
+  const buf = parseInt(document.getElementById('ni-buffer')?.value, 10) || 0;
+  const feePct = parseFloat(document.getElementById('ni-fee')?.value) || 10;
+  const ship = parseInt(document.getElementById('ni-shipping')?.value, 10) || 0;
+  const cost = parseInt(document.getElementById('ni-cost')?.value, 10) || 0;
+  const delay = Math.max(0, parseInt(document.getElementById('ni-discount-start')?.value, 10) || 0);
+  const step = Math.max(1, parseInt(document.getElementById('ni-discount-amount')?.value, 10) || 100);
+  const freq = Math.max(1, parseInt(document.getElementById('ni-discount-freq')?.value, 10) || 1);
+  const startDateStr = (document.getElementById('ni-listed-at')?.value || '').trim();
+  const startPrice = minP + buf;
+  const feeRate = feePct / 100;
+  if (!minP || startPrice < 300 || !startDateStr) {
+    showToast('最低価格・出品開始日を確認してください');
+    return;
+  }
+  const startDate = new Date(startDateStr + 'T12:00:00');
+  const lines = [
+    `📅 値下げスケジュール（${startDateStr} 出品開始）`,
+    `出品開始: ¥${startPrice.toLocaleString()}　最低: ¥${minP.toLocaleString()}　手数料: ${feePct}%　送料: ¥${ship.toLocaleString()}`,
+    cost > 0 ? `仕入れ: ¥${cost.toLocaleString()}` : '',
+    '',
+    '日付\t出品日数\t価格\t手数料後受取\t利益',
+  ].filter(Boolean);
+  const rows = [{ day: 0, date: new Date(startDate), price: startPrice }];
+  if (step > 0 && startPrice > minP) {
+    let dayOffset = delay;
+    let currentPrice = startPrice;
+    while (currentPrice > minP && dayOffset < 400) {
+      const newPrice = Math.max(minP, currentPrice - step);
+      const rowDate = new Date(startDate);
+      rowDate.setDate(rowDate.getDate() + dayOffset);
+      rows.push({ day: dayOffset, date: rowDate, price: newPrice });
+      currentPrice = newPrice;
+      dayOffset += freq;
+    }
+  }
+  const fmtD = (d) =>
+    d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/');
+  rows.forEach((r) => {
+    const net = Math.max(0, Math.floor(r.price * (1 - feeRate)) - ship);
+    const profit = cost > 0 ? net - cost : null;
+    const dayLabel = r.day === 0 ? '初日' : `${r.day}日目`;
+    const profitCell =
+      profit === null ? '—' : `${profit >= 0 ? '+' : ''}¥${profit.toLocaleString()}`;
+    lines.push(
+      `${fmtD(r.date)}\t${dayLabel}\t¥${r.price.toLocaleString()}\t¥${net.toLocaleString()}\t${profitCell}`
+    );
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('スケジュールをコピーしました')).catch(() => showToast('コピーに失敗しました'));
 }
 
 async function generateItemDesc(e) {
