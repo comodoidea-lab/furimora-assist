@@ -1311,6 +1311,9 @@ let ACTIVITIES = [];
 let QUEUE = [];
 let SCHEDULE_DATA = {};
 let NOTIFICATIONS = [];
+const PRIMARY_WEB_ORIGIN = 'https://furimora.vercel.app';
+const LEGACY_WEB_ORIGIN = 'https://furimora-assist.vercel.app';
+const REMOTE_MERCARI_API_ORIGINS = [PRIMARY_WEB_ORIGIN, LEGACY_WEB_ORIGIN];
 
 function loadStorageData() {
   try {
@@ -3168,7 +3171,7 @@ async function fetchCloneData() {
   }
 
   const encoded = encodeURIComponent(raw);
-  const endpoints = ['/api/mercari?url=' + encoded, 'https://furimora-assist.vercel.app/api/mercari?url=' + encoded];
+  const endpoints = ['/api/mercari?url=' + encoded, ...REMOTE_MERCARI_API_ORIGINS.map((origin) => `${origin}/api/mercari?url=${encoded}`)];
   let lastUserMsg = '';
   let success = false;
   for (const endpoint of endpoints) {
@@ -3275,7 +3278,7 @@ async function enrichCloneDataFromApi(data) {
   if (!lacksPrice && !lacksMeta) return norm;
 
   const q = encodeURIComponent(url);
-  const endpoints = [`/api/mercari?url=${q}`, `https://furimora-assist.vercel.app/api/mercari?url=${q}`];
+  const endpoints = [`/api/mercari?url=${q}`, ...REMOTE_MERCARI_API_ORIGINS.map((origin) => `${origin}/api/mercari?url=${q}`)];
   let api = null;
   for (const ep of endpoints) {
     try {
@@ -3395,7 +3398,7 @@ async function downloadAllImages() {
   let count = 0;
 
   const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'https://furimora-assist.vercel.app'
+    ? PRIMARY_WEB_ORIGIN
     : '';
 
   // File System Access API（フォルダが選択済みの場合）

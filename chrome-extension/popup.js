@@ -1,4 +1,4 @@
-const APP_URL = 'https://furimora-assist.vercel.app';
+const APP_URL = 'https://furimora.vercel.app';
 
 chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
   const url = tab?.url || '';

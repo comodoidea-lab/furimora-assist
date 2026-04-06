@@ -324,7 +324,7 @@
       setTimeout(() => {
         const freshData = extractItemData();
         chrome.storage.local.get('furimora_app_url', ({ furimora_app_url }) => {
-          const appUrl = furimora_app_url || 'https://furimora-assist.vercel.app';
+          const appUrl = furimora_app_url || 'https://furimora.vercel.app';
           const cloneUrl = buildCloneUrl(appUrl, freshData);
           chrome.runtime.sendMessage({ type: 'OPEN_TAB', url: cloneUrl });
           showStatus('✓ フリモーラでクローン作成画面を開きます', 'success');

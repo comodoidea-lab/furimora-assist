@@ -2,7 +2,7 @@
  * フリモーラ - Background Service Worker (Manifest V3)
  */
 
-const APP_URL = 'https://furimora-assist.vercel.app';
+const APP_URL = 'https://furimora.vercel.app';
 
 // メッセージハンドラ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
