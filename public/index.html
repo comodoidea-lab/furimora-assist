@@ -2703,7 +2703,6 @@ function triggerCloneZipDownload() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  showToast('保存UIを開きました');
 }
 
 // ── Render Notifications ──
@@ -3481,7 +3480,6 @@ async function downloadAllImages() {
     if (saveBtn) saveBtn.classList.remove('hidden');
     if (cancelBtn) cancelBtn.textContent = '閉じる';
     btn.innerHTML = `<span class="material-symbols-outlined text-sm">check</span>${count}枚をZIPで保存`;
-    showToast(`${count}枚の写真をZIPにまとめました。保存を開始してください`);
     const phaseEl = document.getElementById('clone-zip-phase');
     if (phaseEl) phaseEl.textContent = 'ZIP準備完了。下の「保存を開始」を押してください。';
   } catch (e) {
