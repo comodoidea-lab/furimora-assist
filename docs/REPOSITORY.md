@@ -1,6 +1,6 @@
 # リポジトリ階層と役割
 
-**フリモーラ アシスト**（furimora-assist）は、メルカリの再出品・値下げ・クローン出品を支援するプロジェクトです。Vercel 上の PWA（`public/index.html`）、Edge API、Chrome 拡張、Capacitor 設定、および Stitch 由来のデザイン参照が同じリポジトリにあります。
+**フリモーラ**（furimora）は、メルカリの再出品・値下げ・クローン出品を支援するプロジェクトです。Vercel 上の PWA（`public/index.html`）、Edge API、Chrome 拡張、Capacitor 設定、および Stitch 由来のデザイン参照が同じリポジトリにあります。
 
 本番 Web アプリ URL は拡張機能内で `https://furimora-assist.vercel.app` に固定されています（`chrome-extension/background.js`、`chrome-extension/popup.js`）。
 
@@ -70,8 +70,8 @@ flowchart LR
 
 | パス | 備考 |
 |------|------|
-| `pkg/furimora-assist.html` | 配布用などの単体 HTML の可能性。 |
-| `furimora-assist-pkg/furimora-assist.html` | 上記と内容が重複している場合は、どちらを正とするか整理するとよい。 |
+| `pkg/furimora.html` | 配布用などの単体 HTML の可能性。 |
+| `furimora-pkg/furimora.html` | 上記と内容が重複している場合は、どちらを正とするか整理するとよい。 |
 
 ## `.claude/` — ローカル開発設定
 
