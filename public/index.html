@@ -873,6 +873,13 @@ tailwind.config = {
         <div class="flex items-center justify-between px-5 py-4 hover:bg-surface-container cursor-pointer">
           <p class="text-sm font-bold">利用規約</p><span class="material-symbols-outlined text-on-surface-variant">open_in_new</span>
         </div>
+        <button type="button" onclick="window.open('https://github.com/comodoidea-lab/furimora/raw/main/chrome-extension/furimora-chrome-extension.zip','_blank','noopener,noreferrer')" class="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-container transition-colors text-left">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary">extension</span>
+            <p class="text-sm font-bold text-primary">Chrome拡張機能をダウンロード</p>
+          </div>
+          <span class="material-symbols-outlined text-primary">open_in_new</span>
+        </button>
         <button onclick="installPWA()" class="w-full flex items-center justify-between px-5 py-4 hover:bg-surface-container transition-colors text-left">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-primary">install_mobile</span>
@@ -898,7 +905,7 @@ tailwind.config = {
     <!-- Tab nav -->
     <div class="flex border-b border-surface-container mb-4">
       <button onclick="switchItemTab('price')" id="tab-price" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-primary text-primary">価格</button>
-      <button onclick="switchItemTab('desc')" id="tab-desc" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">✏️ 説明文</button>
+      <button onclick="switchItemTab('desc')" id="tab-desc" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">説明文</button>
       <button onclick="switchItemTab('schedule')" id="tab-schedule" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">スケジュール</button>
     </div>
 
@@ -1342,8 +1349,10 @@ function isIOSDevice() {
 function loadStats() {
   try {
     const s = JSON.parse(localStorage.getItem('furimora_stats') || '{}');
+    const listedItems = JSON.parse(localStorage.getItem('furimora_items') || '[]');
+    const totalListed = Array.isArray(listedItems) ? listedItems.length : 0;
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('stat-total',    s.total    != null ? String(s.total)    : '0');
+    set('stat-total', String(totalListed));
     set('stat-discount', s.discount != null ? String(s.discount) : '0');
     set('stat-relist',   s.relist   != null ? String(s.relist)   : '0');
     set('stat-profit',   s.profit   != null ? '¥' + Number(s.profit).toLocaleString() : '¥0');
@@ -2696,11 +2705,11 @@ function emptyState(icon, msg, sub='') {
 
 function lucideIconName(hint) {
   const text = String(hint || '').toLowerCase();
-  if (text.includes('値下げ') || text.includes('📉') || text.includes('trending-down')) return 'trending-down';
-  if (text.includes('再出品') || text.includes('🔄') || text.includes('refresh-cw')) return 'refresh-cw';
-  if (text.includes('出品開始') || text.includes('出品') || text.includes('🏷')) return 'tag';
-  if (text.includes('メモ') || text.includes('📝') || text.includes('file-pen')) return 'file-pen-line';
-  if (text.includes('クローン') || text.includes('📋') || text.includes('copy')) return 'copy';
+  if (text.includes('値下げ') || text.includes('trending-down')) return 'trending-down';
+  if (text.includes('再出品') || text.includes('refresh-cw')) return 'refresh-cw';
+  if (text.includes('出品開始') || text.includes('出品')) return 'tag';
+  if (text.includes('メモ') || text.includes('file-pen')) return 'file-pen-line';
+  if (text.includes('クローン') || text.includes('copy')) return 'copy';
   return 'package';
 }
 
@@ -3703,7 +3712,7 @@ async function generateDescription() {
   btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;"></span>生成中...';
   btn.disabled = true;
   await new Promise(r => setTimeout(r, 1500));
-  const endings = { '丁寧':'いただきます。よろしくお願いいたします。', 'カジュアル':'です！気軽にコメントください😊', '高級感':'ございます。上質な商品をお届けいたします。', '訴求力重視':'です！この機会をお見逃しなく！' };
+  const endings = { '丁寧':'いただきます。よろしくお願いいたします。', 'カジュアル':'です！気軽にコメントください。', '高級感':'ございます。上質な商品をお届けいたします。', '訴求力重視':'です！この機会をお見逃しなく！' };
   const end = endings[selectedTone] || endings['丁寧'];
   const text = `【極美品】${keywords}\n\n■ 商品の状態\n数回のみ使用した美品です。目立った傷・汚れはございません。\n\n■ 付属品\n元箱・付属品一式完備\n\n■ ${keywords.split('、')[0]}の特徴\n・${keywords.replace(/、/g,'\n・')}\n・大切に使用してきたので状態は良好\n\n■ 発送・梱包\n購入確定後2日以内に発送予定\n丁寧に梱包してお届け${end}`;
   document.getElementById('gen-text').value = text;

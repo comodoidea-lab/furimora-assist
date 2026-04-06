@@ -7,3 +7,4 @@ npm-debug.log*
 .claude/settings.local.json
 stitch_furimora.zip
 *.zip
+!chrome-extension/furimora-chrome-extension.zip
