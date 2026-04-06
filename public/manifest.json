@@ -14,8 +14,20 @@
   ],
   "categories": ["productivity", "shopping"],
   "screenshots": [
-    { "src": "/screenshots/home.png", "sizes": "390x844", "type": "image/png", "label": "ダッシュボード" },
-    { "src": "/screenshots/clone.png", "sizes": "390x844", "type": "image/png", "label": "クローン作成" }
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "フリモーラ アシスト",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "label": "フリモーラ アシスト",
+      "form_factor": "wide"
+    }
   ],
   "share_target": {
     "action": "/",
