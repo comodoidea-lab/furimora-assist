@@ -194,6 +194,39 @@ async function fetchFromMercariApi(itemId) {
   }
 }
 
+/**
+ * メルカリ item からカテゴリパス文字列を組み立てる。
+ * API は item.categories が空で item_category（root / parent / name）のみ返すことがある。
+ */
+function buildCategoryString(item) {
+  if (!item || typeof item !== 'object') return '';
+  const cats =
+    item.categories || item.itemCategoryGroupList || item.category_list || [];
+  if (Array.isArray(cats) && cats.length) {
+    return cats
+      .map((c) =>
+        c && typeof c === 'object'
+          ? c.name || c.displayName || c.root_category_name || ''
+          : String(c || '')
+      )
+      .filter(Boolean)
+      .join(' > ');
+  }
+  const ic = item.item_category || item.itemCategory;
+  if (ic && typeof ic === 'object') {
+    const parts = [];
+    if (ic.root_category_name) parts.push(String(ic.root_category_name));
+    if (ic.parent_category_name) parts.push(String(ic.parent_category_name));
+    if (ic.name) parts.push(String(ic.name));
+    const deduped = parts.filter((p, i) => i === 0 || p !== parts[i - 1]);
+    return deduped.join(' > ');
+  }
+  if (item.category && typeof item.category === 'object' && item.category.name) {
+    return String(item.category.name);
+  }
+  return '';
+}
+
 function normalizeApi(item) {
   const photos = item.photos || [];
   const images = [];
@@ -217,10 +250,7 @@ function normalizeApi(item) {
     }
   }
 
-  const cats = item.categories || [];
-  const category = Array.isArray(cats)
-    ? cats.map((c) => (c && typeof c === 'object' ? c.name || c.displayName : c)).filter(Boolean).join(' > ')
-    : '';
+  const category = buildCategoryString(item);
 
   const condObj = item.item_condition || item.itemCondition || {};
   const condition =
@@ -509,11 +539,7 @@ function normalizePageData(item, itemId, url) {
   // 画像配列の抽出（複数パターン対応）
   const images = extractImages(item);
 
-  // カテゴリ
-  const cats = item.categories || item.itemCategoryGroupList || item.category_list || [];
-  const category = Array.isArray(cats)
-    ? cats.map(c => c.name || c.displayName || '').filter(Boolean).join(' > ')
-    : (item.category?.name || '');
+  const category = buildCategoryString(item);
 
   // 商品状態
   const condition = item.itemCondition?.name
