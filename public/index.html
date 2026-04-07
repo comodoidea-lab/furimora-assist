@@ -1652,6 +1652,9 @@ let furimoraAutoPushRelistRunning = false;
 const FURIMORA_SYNC_POLL_MS = 45000;
 /** 最後にクラウドの版（updated_at）を取り込んだ／push で確定した時刻（ローカル編集時刻とは別。多段末同期の判定に使う） */
 const FURIMORA_SYNC_LAST_REMOTE_AT = 'furimora_sync_last_remote_at';
+const FURIMORA_SYNC_LOCAL_CHANGED_AT = 'furimora_sync_local_changed_at';
+const FURIMORA_SYNC_LAST_PUSH_AT = 'furimora_sync_last_push_at';
+const FURIMORA_SYNC_LOCAL_BACKUP = 'furimora_sync_local_backup_v1';
 const FURIMORA_PUSH_SENT_ALERT_IDS = 'furimora_push_sent_alert_ids';
 const FURIMORA_AUTOMATION_SETTINGS_KEY = 'furimora_automation_settings';
 const FURIMORA_DEFAULT_AUTOMATION_SETTINGS = {
@@ -1772,6 +1775,35 @@ function setLastRemoteAt(iso) {
   if (!iso) return;
   try { localStorage.setItem(FURIMORA_SYNC_LAST_REMOTE_AT, iso); } catch (e) { /* quota */ }
 }
+function getSyncMs(key) {
+  const s = localStorage.getItem(key);
+  if (!s) return 0;
+  const t = new Date(s).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+function setSyncIsoNow(key) {
+  try { localStorage.setItem(key, new Date().toISOString()); } catch (e) { /* quota */ }
+}
+function clearSyncKey(key) {
+  try { localStorage.removeItem(key); } catch (e) { /* quota */ }
+}
+function hasUnsyncedLocalChanges() {
+  const changedAt = getSyncMs(FURIMORA_SYNC_LOCAL_CHANGED_AT);
+  if (!changedAt) return false;
+  const pushedAt = getSyncMs(FURIMORA_SYNC_LAST_PUSH_AT);
+  return changedAt > pushedAt;
+}
+function backupLocalSyncPayload() {
+  try {
+    const payload = furimoraCollectSyncPayload();
+    localStorage.setItem(FURIMORA_SYNC_LOCAL_BACKUP, JSON.stringify({
+      at: new Date().toISOString(),
+      payload,
+    }));
+  } catch (e) {
+    console.warn('[sync backup]', e);
+  }
+}
 function scheduleSyncPush() {
   if (!furimoraSupabaseClient) return;
   clearTimeout(furimoraSyncPushTimer);
@@ -1780,6 +1812,7 @@ function scheduleSyncPush() {
   }, 2800);
 }
 function notifyLocalDataChanged() {
+  setSyncIsoNow(FURIMORA_SYNC_LOCAL_CHANGED_AT);
   scheduleSyncPush();
 }
 function furimoraStopSyncPolling() {
@@ -4706,6 +4739,8 @@ async function furimoraPushToCloud() {
   } else {
     furimoraSetLastSyncAt(new Date().toISOString());
   }
+  setSyncIsoNow(FURIMORA_SYNC_LAST_PUSH_AT);
+  clearSyncKey(FURIMORA_SYNC_LOCAL_CHANGED_AT);
   furimoraSyncSetBadge('ok', '同期済み');
   return { ok: true, updatedAt: data?.updated_at || null };
 }
@@ -4743,10 +4778,17 @@ async function furimoraSyncAfterLogin() {
   const remoteT = new Date(data.updated_at).getTime();
   // ローカル最終編集時刻ではなく「最後に取り込んだクラウドの updated_at」と比較（端末で保存すると常にローカルが新しくなる問題を防ぐ）
   if (remoteT > lastMerged) {
+    if (hasUnsyncedLocalChanges()) {
+      furimoraSyncSetBadge('error', '競合');
+      showToast('別端末の更新とこの端末の未同期変更が競合しています。先に「今すぐ同期（アップロード）」または「クラウドから取得」を選んでください。');
+      return;
+    }
     furimoraSyncSetBadge('syncing', '同期中');
+    backupLocalSyncPayload();
     furimoraApplySyncPayload(data.payload);
     setLastRemoteAt(data.updated_at);
     furimoraSetLastSyncAt(data.updated_at);
+    clearSyncKey(FURIMORA_SYNC_LOCAL_CHANGED_AT);
     furimoraSyncSetBadge('ok', '同期済み');
     showToast('クラウドのデータを読み込みました');
   } else {
@@ -4759,6 +4801,13 @@ async function furimoraForcePullFromCloud() {
   furimoraSyncSetBadge('syncing', '同期中');
   const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
   if (!session) { showToast('ログインしてください'); return; }
+  if (hasUnsyncedLocalChanges()) {
+    const ok = confirm('この端末に未同期の変更があります。クラウド取得を実行するとローカル変更が上書きされる可能性があります。続行しますか？');
+    if (!ok) {
+      furimoraSyncSetBadge('idle', '待機中');
+      return;
+    }
+  }
   const { data, error } = await furimoraSupabaseClient
     .from('user_app_state')
     .select('payload, updated_at')
@@ -4769,9 +4818,11 @@ async function furimoraForcePullFromCloud() {
     showToast('クラウドにデータがありません');
     return;
   }
+  backupLocalSyncPayload();
   furimoraApplySyncPayload(data.payload);
   setLastRemoteAt(data.updated_at);
   furimoraSetLastSyncAt(data.updated_at);
+  clearSyncKey(FURIMORA_SYNC_LOCAL_CHANGED_AT);
   furimoraSyncSetBadge('ok', '同期済み');
   showToast('クラウドのデータを反映しました');
 }
