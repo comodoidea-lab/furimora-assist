@@ -4589,16 +4589,19 @@ async function furimoraEnsureWebPushSubscription(showToastOnSuccess = true) {
 
 async function furimoraSendWebPushTest() {
   const subscription = await furimoraEnsureWebPushSubscription(false);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
   const res = await fetch('/api/push-send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: controller.signal,
     body: JSON.stringify({
       subscription: subscription.toJSON ? subscription.toJSON() : subscription,
       title: 'フリモーラ',
       body: 'Web Push テスト通知です',
       url: '/',
     }),
-  });
+  }).finally(() => clearTimeout(timeout));
   const body = await res.json().catch(() => ({}));
   if (!res.ok || !body?.ok) {
     const msg = body?.error || body?.details || 'push send failed';
@@ -4736,11 +4739,15 @@ function furimoraWireSyncButtons() {
   });
   document.getElementById('sync-test-webpush-btn')?.addEventListener('click', async () => {
     try {
+      showToast('通知テスト送信中…');
       await furimoraSendWebPushTest();
-      showToast('テスト通知を送信しました');
+      showToast('テスト通知を送信しました（数秒待っても出ない場合は失敗です）');
     } catch (e) {
       console.error(e);
-      showToast('テスト通知に失敗しました: ' + (e?.message || e));
+      const msg = (e?.name === 'AbortError')
+        ? 'テスト通知に失敗しました: タイムアウト（/api/push-send 応答なし）'
+        : 'テスト通知に失敗しました: ' + (e?.message || e);
+      showToast(msg);
     }
   });
   document.getElementById('sync-logout-btn')?.addEventListener('click', () => {
@@ -4812,11 +4819,15 @@ function furimoraWireSyncButtons() {
   });
   document.getElementById('modal-sync-test-webpush-btn')?.addEventListener('click', async () => {
     try {
+      showToast('通知テスト送信中…');
       await furimoraSendWebPushTest();
-      showToast('テスト通知を送信しました');
+      showToast('テスト通知を送信しました（数秒待っても出ない場合は失敗です）');
     } catch (e) {
       console.error(e);
-      showToast('テスト通知に失敗しました: ' + (e?.message || e));
+      const msg = (e?.name === 'AbortError')
+        ? 'テスト通知に失敗しました: タイムアウト（/api/push-send 応答なし）'
+        : 'テスト通知に失敗しました: ' + (e?.message || e);
+      showToast(msg);
     }
   });
   document.getElementById('modal-sync-logout-btn')?.addEventListener('click', () => {
