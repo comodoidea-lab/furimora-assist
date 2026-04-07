@@ -36,9 +36,13 @@ export default async function handler(req) {
   });
 
   try {
-    await webpush.sendNotification(sub, payload);
+    await webpush.sendNotification(sub, payload, { TTL: 60, urgency: 'high' });
     return json({ ok: true });
   } catch (e) {
-    return json({ error: e?.message || 'push failed', statusCode: e?.statusCode || null }, 500);
+    return json({
+      error: e?.message || 'push failed',
+      statusCode: e?.statusCode || null,
+      details: e?.body || null,
+    }, 500);
   }
 }
