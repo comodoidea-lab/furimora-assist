@@ -818,7 +818,7 @@ tailwind.config = {
           <div class="flex flex-wrap gap-2">
             <button type="button" id="sync-push-btn" class="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs">今すぐ同期（アップロード）</button>
             <button type="button" id="sync-pull-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">クラウドから取得</button>
-            <button type="button" id="sync-logout-btn" class="px-4 py-2 rounded-full text-error font-bold text-xs">ログアウト</button>
+            <button type="button" id="sync-logout-btn" class="min-h-[44px] px-4 py-2.5 rounded-full text-error font-bold text-sm touch-manipulation">ログアウト</button>
           </div>
         </div>
         <p class="text-[10px] text-on-surface-variant/80 leading-relaxed">※ 出品一覧・下書き・スケジュールなどを同期します。ダウンロード先フォルダの許可は端末ごとです。Gemini 等の API キーは同期しません。</p>
@@ -1336,7 +1336,7 @@ tailwind.config = {
       <div class="flex flex-wrap gap-2">
         <button type="button" id="modal-sync-push-btn" class="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs">今すぐ同期（アップロード）</button>
         <button type="button" id="modal-sync-pull-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">クラウドから取得</button>
-        <button type="button" id="modal-sync-logout-btn" class="px-4 py-2 rounded-full text-error font-bold text-xs">ログアウト</button>
+        <button type="button" id="modal-sync-logout-btn" class="min-h-[44px] px-4 py-2.5 rounded-full text-error font-bold text-sm touch-manipulation">ログアウト</button>
       </div>
     </div>
     <p class="text-[10px] text-on-surface-variant/80 leading-relaxed mt-4">※ 設定ページの「クラウド同期」でも同じ操作ができます。</p>
@@ -2691,6 +2691,7 @@ if (typeof window !== 'undefined' && isIOSDevice()) {
     if (e.touches && e.touches.length > 1) e.preventDefault();
   }, { passive: false });
   document.addEventListener('touchend', (e) => {
+    if (e.target.closest('button, a, [role="button"], input, textarea, select, label, .modal-overlay, .modal-sheet')) return;
     const now = Date.now();
     if (now - __lastTouchEnd <= 280) e.preventDefault();
     __lastTouchEnd = now;
@@ -4009,6 +4010,55 @@ function openAccountModal() {
   if (el) el.classList.add('open');
 }
 
+/** セッション解除＋この端末の furimora データ・Supabase ストレージ・DL フォルダ IDB を消去し、ログインモーダルを開く */
+async function furimoraPerformFullLogout() {
+  document.querySelectorAll('.modal-overlay.open').forEach((el) => el.classList.remove('open'));
+  try {
+    if (furimoraSupabaseClient) await furimoraSupabaseClient.auth.signOut({ scope: 'local' });
+  } catch (e) {
+    console.error(e);
+  }
+  const removeKeys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && (k.startsWith('furimora_') || k.startsWith('sb-'))) removeKeys.push(k);
+  }
+  removeKeys.forEach((key) => {
+    try { localStorage.removeItem(key); } catch (err) { /* quota */ }
+  });
+  await new Promise((resolve) => {
+    try {
+      const r = indexedDB.deleteDatabase('furimora_db');
+      r.onsuccess = () => resolve();
+      r.onerror = () => resolve();
+      r.onblocked = () => resolve();
+    } catch (e) {
+      resolve();
+    }
+  });
+  downloadDirHandle = null;
+  updateDownloadFolderDisplay('');
+  clonedData = {};
+  loadStorageData();
+  loadItems();
+  loadStats();
+  renderAlerts();
+  renderActivities();
+  renderQueue();
+  renderDrafts();
+  renderListingDrafts();
+  renderCalendar();
+  renderTemplatesList();
+  populateTemplateSelect();
+  renderItems();
+  document.querySelectorAll('.notif-badge').forEach((b) => b.classList.add('hidden'));
+  furimoraSyncUpdateUI(null);
+  navigate('home');
+  window.scrollTo(0, 0);
+  openAccountModal();
+  showToast('ログアウトしました。端末のデータを消去しました。');
+}
+
 function furimoraSyncUpdateUI(session) {
   const out = document.getElementById('sync-logged-out');
   const inn = document.getElementById('sync-logged-in');
@@ -4125,11 +4175,8 @@ function furimoraWireSyncButtons() {
     showToast('クラウドに保存しました');
   });
   document.getElementById('sync-pull-btn')?.addEventListener('click', () => furimoraForcePullFromCloud().catch((e) => console.error(e)));
-  document.getElementById('sync-logout-btn')?.addEventListener('click', async () => {
-    if (!furimoraSupabaseClient) return;
-    await furimoraSupabaseClient.auth.signOut();
-    closeModal('account-modal');
-    showToast('ログアウトしました');
+  document.getElementById('sync-logout-btn')?.addEventListener('click', () => {
+    furimoraPerformFullLogout().catch((e) => console.error(e));
   });
 
   document.getElementById('modal-sync-google-btn')?.addEventListener('click', async () => {
@@ -4178,11 +4225,8 @@ function furimoraWireSyncButtons() {
     showToast('クラウドに保存しました');
   });
   document.getElementById('modal-sync-pull-btn')?.addEventListener('click', () => furimoraForcePullFromCloud().catch((e) => console.error(e)));
-  document.getElementById('modal-sync-logout-btn')?.addEventListener('click', async () => {
-    if (!furimoraSupabaseClient) return;
-    await furimoraSupabaseClient.auth.signOut();
-    closeModal('account-modal');
-    showToast('ログアウトしました');
+  document.getElementById('modal-sync-logout-btn')?.addEventListener('click', () => {
+    furimoraPerformFullLogout().catch((e) => console.error(e));
   });
 }
 
