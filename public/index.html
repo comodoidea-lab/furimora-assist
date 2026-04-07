@@ -1644,10 +1644,12 @@ const FURIMORA_SYNC_KEYS = [
 ];
 let furimoraSupabaseClient = null;
 let furimoraSyncPushTimer = null;
+let furimoraSyncPollTimer = null;
 let furimoraSyncAfterLoginLastTs = 0;
 let furimoraWebPushVapidPublicKey = '';
 let furimoraAutoPushDiscountRunning = false;
 let furimoraAutoPushRelistRunning = false;
+const FURIMORA_SYNC_POLL_MS = 45000;
 /** 最後にクラウドの版（updated_at）を取り込んだ／push で確定した時刻（ローカル編集時刻とは別。多段末同期の判定に使う） */
 const FURIMORA_SYNC_LAST_REMOTE_AT = 'furimora_sync_last_remote_at';
 const FURIMORA_PUSH_SENT_ALERT_IDS = 'furimora_push_sent_alert_ids';
@@ -1779,6 +1781,23 @@ function scheduleSyncPush() {
 }
 function notifyLocalDataChanged() {
   scheduleSyncPush();
+}
+function furimoraStopSyncPolling() {
+  if (!furimoraSyncPollTimer) return;
+  clearInterval(furimoraSyncPollTimer);
+  furimoraSyncPollTimer = null;
+}
+function furimoraStartSyncPolling() {
+  furimoraStopSyncPolling();
+  if (!furimoraSupabaseClient) return;
+  furimoraSyncPollTimer = setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    furimoraSyncAfterLogin().catch((e) => console.error('[sync poll]', e));
+  }, FURIMORA_SYNC_POLL_MS);
+}
+function furimoraSyncOnVisible() {
+  if (document.visibilityState !== 'visible') return;
+  furimoraSyncAfterLogin().catch((e) => console.error('[sync visible]', e));
 }
 
 function loadStorageData() {
@@ -4659,10 +4678,13 @@ function furimoraReloadAllFromStorage() {
 }
 
 async function furimoraPushToCloud() {
-  if (!furimoraSupabaseClient) return;
+  if (!furimoraSupabaseClient) return { ok: false, reason: 'not_ready' };
   furimoraSyncSetBadge('syncing', '同期中');
   const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
-  if (!session) return;
+  if (!session) {
+    furimoraSyncSetBadge('idle', '待機中');
+    return { ok: false, reason: 'not_logged_in' };
+  }
   const payload = furimoraCollectSyncPayload();
   const { data, error } = await furimoraSupabaseClient
     .from('user_app_state')
@@ -4676,7 +4698,7 @@ async function furimoraPushToCloud() {
     console.error('[sync push]', error);
     furimoraSyncSetBadge('error', '失敗');
     showToast('同期に失敗しました: ' + (error.message || String(error)));
-    return;
+    return { ok: false, reason: 'error', error };
   }
   if (data?.updated_at) {
     setLastRemoteAt(data.updated_at);
@@ -4685,6 +4707,7 @@ async function furimoraPushToCloud() {
     furimoraSetLastSyncAt(new Date().toISOString());
   }
   furimoraSyncSetBadge('ok', '同期済み');
+  return { ok: true, updatedAt: data?.updated_at || null };
 }
 
 async function furimoraSyncAfterLogin() {
@@ -5077,6 +5100,7 @@ function furimoraSyncUpdateUI(session) {
     if (emailEl) emailEl.textContent = session.user.email || session.user.id;
     if (memailEl) memailEl.textContent = session.user.email || session.user.id;
     if (furimoraSupabaseClient) furimoraSyncSetStatus('ログイン中 — 変更は数秒後に自動同期されます');
+    furimoraStartSyncPolling();
     furimoraUpdateHeaderAccount(session);
   } else {
     if (out) out.classList.remove('hidden');
@@ -5084,6 +5108,7 @@ function furimoraSyncUpdateUI(session) {
     if (mout) mout.classList.remove('hidden');
     if (minn) minn.classList.add('hidden');
     if (furimoraSupabaseClient) furimoraSyncSetStatus('未ログイン — ログインすると端末間でデータを同期できます');
+    furimoraStopSyncPolling();
     furimoraUpdateHeaderAccount(null);
   }
 }
@@ -5400,8 +5425,9 @@ function furimoraWireSyncButtons() {
   });
 
   document.getElementById('sync-push-btn')?.addEventListener('click', async () => {
-    await furimoraPushToCloud();
-    showToast('クラウドに保存しました');
+    const result = await furimoraPushToCloud();
+    if (result?.ok) showToast('クラウドに保存しました');
+    else if (result?.reason === 'not_logged_in') showToast('ログイン後に同期できます');
   });
   document.getElementById('sync-pull-btn')?.addEventListener('click', () => furimoraForcePullFromCloud().catch((e) => console.error(e)));
   document.getElementById('sync-enable-webpush-btn')?.addEventListener('click', async () => {
@@ -5458,8 +5484,9 @@ function furimoraWireSyncButtons() {
     else showToast('ログイン用リンクをメールに送信しました');
   });
   document.getElementById('modal-sync-push-btn')?.addEventListener('click', async () => {
-    await furimoraPushToCloud();
-    showToast('クラウドに保存しました');
+    const result = await furimoraPushToCloud();
+    if (result?.ok) showToast('クラウドに保存しました');
+    else if (result?.reason === 'not_logged_in') showToast('ログイン後に同期できます');
   });
   document.getElementById('modal-sync-pull-btn')?.addEventListener('click', () => furimoraForcePullFromCloud().catch((e) => console.error(e)));
   document.getElementById('modal-sync-enable-webpush-btn')?.addEventListener('click', async () => {
@@ -5476,8 +5503,9 @@ function furimoraWireSyncButtons() {
 
   const retry = async () => {
     try {
-      await furimoraPushToCloud();
-      showToast('同期を再試行しました');
+      const result = await furimoraPushToCloud();
+      if (result?.ok) showToast('同期を再試行しました');
+      else showToast('再試行に失敗しました');
     } catch (e) {
       console.error(e);
       furimoraSyncSetBadge('error', '失敗');
@@ -5543,6 +5571,7 @@ function enableTapClearNumberInputs(modalId) {
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('visibilitychange', furimoraSyncOnVisible);
   if (isIOSDevice()) document.documentElement.classList.add('ios-touch-lock');
   furimoraInitAutomationToggles();
   loadCommerceSettings();
