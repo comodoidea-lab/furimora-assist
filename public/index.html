@@ -1649,7 +1649,7 @@ let furimoraSyncAfterLoginLastTs = 0;
 let furimoraWebPushVapidPublicKey = '';
 let furimoraAutoPushDiscountRunning = false;
 let furimoraAutoPushRelistRunning = false;
-const FURIMORA_SYNC_POLL_MS = 45000;
+const FURIMORA_SYNC_POLL_MS = 12000;
 /** 最後にクラウドの版（updated_at）を取り込んだ／push で確定した時刻（ローカル編集時刻とは別。多段末同期の判定に使う） */
 const FURIMORA_SYNC_LAST_REMOTE_AT = 'furimora_sync_last_remote_at';
 const FURIMORA_SYNC_LOCAL_CHANGED_AT = 'furimora_sync_local_changed_at';
@@ -4765,14 +4765,26 @@ async function furimoraSyncAfterLogin() {
     return;
   }
   if (!data) {
-    await furimoraPushToCloud();
-    showToast('この端末のデータをクラウドに保存しました');
+    const localPayload = furimoraCollectSyncPayload();
+    const hasLocal = localPayload?.keys && Object.keys(localPayload.keys).length > 0;
+    if (hasLocal) {
+      await furimoraPushToCloud();
+      showToast('この端末のデータをクラウドに保存しました');
+    } else {
+      furimoraSyncSetBadge('idle', '待機中');
+    }
     return;
   }
   const hasKeys = data.payload && data.payload.keys && Object.keys(data.payload.keys).length > 0;
   if (!hasKeys) {
-    await furimoraPushToCloud();
-    showToast('この端末のデータをクラウドに保存しました');
+    const localPayload = furimoraCollectSyncPayload();
+    const hasLocal = localPayload?.keys && Object.keys(localPayload.keys).length > 0;
+    if (hasLocal) {
+      await furimoraPushToCloud();
+      showToast('この端末のデータをクラウドに保存しました');
+    } else {
+      furimoraSyncSetBadge('idle', '待機中');
+    }
     return;
   }
   const remoteT = new Date(data.updated_at).getTime();
@@ -4792,7 +4804,13 @@ async function furimoraSyncAfterLogin() {
     furimoraSyncSetBadge('ok', '同期済み');
     showToast('クラウドのデータを読み込みました');
   } else {
-    await furimoraPushToCloud();
+    // 重要: リモートが新しくない場合でも、未同期のローカル変更がある時だけ push する
+    // （未変更端末からの stale 上書きを防ぐ）
+    if (hasUnsyncedLocalChanges()) {
+      await furimoraPushToCloud();
+    } else {
+      furimoraSyncSetBadge('idle', '待機中');
+    }
   }
 }
 
