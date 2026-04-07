@@ -179,6 +179,22 @@ tailwind.config = {
   }
   @media (min-width: 768px) { .modal-sheet { border-radius: 1.5rem; margin: 1rem; } }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  /* 新規出品モーダル: 押下感とステップ遷移の一貫した手触り */
+  #new-item-modal button {
+    transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.16s ease;
+  }
+  #new-item-modal button:active {
+    transform: scale(0.985);
+    filter: brightness(0.98);
+  }
+  .ni-tab-enter {
+    animation: niTabFade 0.16s ease;
+  }
+  @keyframes niTabFade {
+    from { opacity: 0.65; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
 <body>
@@ -994,18 +1010,36 @@ tailwind.config = {
 
 <!-- 新規出品アシスタント Modal -->
 <div id="new-item-modal" class="modal-overlay" onclick="if(event.target===this)closeModal('new-item-modal')">
-  <div class="modal-sheet max-h-[92vh] overflow-y-auto w-full" style="max-width:480px">
+  <div class="modal-sheet max-h-[92vh] overflow-y-auto w-full pb-24" style="max-width:480px">
     <div class="flex items-center justify-between mb-3">
       <h3 class="font-headline font-bold text-lg" id="ni-modal-title">新規出品</h3>
       <button onclick="closeModal('new-item-modal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container">
         <span class="material-symbols-outlined text-lg">close</span>
       </button>
     </div>
-    <!-- Tab nav -->
-    <div class="flex border-b border-surface-container mb-4">
-      <button onclick="switchItemTab('price')" id="tab-price" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-primary text-primary">価格</button>
-      <button onclick="switchItemTab('desc')" id="tab-desc" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">説明文</button>
-      <button onclick="switchItemTab('schedule')" id="tab-schedule" class="item-tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-on-surface-variant">スケジュール</button>
+    <!-- Step nav -->
+    <div class="mb-4 space-y-3">
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="switchItemTab('price')" id="tab-price" class="item-tab-btn rounded-xl border border-primary bg-primary/10 px-2 py-2 text-left">
+          <p class="text-[10px] font-black text-primary">STEP 1</p>
+          <p class="text-xs font-bold text-primary">価格</p>
+        </button>
+        <button onclick="switchItemTab('desc')" id="tab-desc" class="item-tab-btn rounded-xl border border-surface-container-highest bg-surface-container-low px-2 py-2 text-left">
+          <p class="text-[10px] font-black text-on-surface-variant">STEP 2</p>
+          <p class="text-xs font-bold text-on-surface-variant">説明文</p>
+        </button>
+        <button onclick="switchItemTab('schedule')" id="tab-schedule" class="item-tab-btn rounded-xl border border-surface-container-highest bg-surface-container-low px-2 py-2 text-left">
+          <p class="text-[10px] font-black text-on-surface-variant">STEP 3</p>
+          <p class="text-xs font-bold text-on-surface-variant">スケジュール</p>
+        </button>
+      </div>
+      <div class="flex items-center justify-between">
+        <p id="ni-step-hint" class="text-[11px] text-on-surface-variant font-medium">まず価格と利益を決めます</p>
+        <div class="flex items-center gap-2">
+          <button type="button" id="ni-step-prev-btn" onclick="switchItemTab('price')" class="px-3 py-1.5 rounded-full text-[11px] font-bold bg-surface-container text-on-surface-variant">戻る</button>
+          <button type="button" id="ni-step-next-btn" onclick="switchItemTab('desc')" class="px-3 py-1.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary">次へ</button>
+        </div>
+      </div>
     </div>
 
     <!-- Tab: 価格 -->
@@ -1036,32 +1070,10 @@ tailwind.config = {
               </select>
             </div>
           </div>
-          <div class="grid grid-cols-1 gap-3">
-            <div>
-              <label class="text-xs font-semibold text-on-surface-variant">仕入先</label>
-              <div class="flex gap-2 mt-1">
-                <select id="ni-supplier-select" onchange="onNiSupplierSelect()" class="w-40 bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
-                  <option value="">履歴から選択</option>
-                </select>
-                <input id="ni-supplier" type="text" placeholder="例: ブックオフ渋谷店"
-                  class="flex-1 bg-surface-container border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"/>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       <div>
         <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">価格・経費</p>
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <label class="text-xs font-semibold text-on-surface-variant">販路</label>
-            <select id="ni-marketplace" onchange="onNiMarketplaceChange()" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"></select>
-          </div>
-          <div>
-            <label class="text-xs font-semibold text-on-surface-variant">発送方法</label>
-            <select id="ni-shipping-method" onchange="onNiShippingMethodChange()" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"></select>
-          </div>
-        </div>
         <div class="grid grid-cols-2 gap-3 mb-3">
           <div>
             <label class="text-xs font-semibold text-on-surface-variant">仕入れ値</label>
@@ -1120,6 +1132,31 @@ tailwind.config = {
         </div>
         <p class="text-[10px] text-on-surface-variant mt-2 text-center">値下げ後・最低価格<span id="ni-minprice-hint">¥800</span>で売れた場合の利益: <span class="font-bold text-tertiary" id="ni-profit-min">¥720</span></p>
       </div>
+      <details class="bg-surface-container-low rounded-xl px-3 py-2.5">
+        <summary class="cursor-pointer text-xs font-bold text-on-surface-variant">詳細設定（販路・発送・仕入先）</summary>
+        <div class="space-y-3 mt-3">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant">販路</label>
+              <select id="ni-marketplace" onchange="onNiMarketplaceChange()" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"></select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant">発送方法</label>
+              <select id="ni-shipping-method" onchange="onNiShippingMethodChange()" class="mt-1 w-full bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none"></select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold text-on-surface-variant">仕入先</label>
+            <div class="flex gap-2 mt-1">
+              <select id="ni-supplier-select" onchange="onNiSupplierSelect()" class="w-40 bg-surface-container border-none rounded-xl px-3 py-2.5 text-sm outline-none">
+                <option value="">履歴から選択</option>
+              </select>
+              <input id="ni-supplier" type="text" placeholder="例: ブックオフ渋谷店"
+                class="flex-1 bg-surface-container border-none rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"/>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <!-- Tab: 説明文 -->
@@ -1222,7 +1259,7 @@ tailwind.config = {
     </div>
 
     <!-- Footer -->
-    <div class="flex gap-3 mt-6 pt-4 border-t border-surface-container">
+    <div class="sticky bottom-0 left-0 right-0 z-10 -mx-6 px-6 py-3 mt-6 border-t border-surface-container bg-surface/95 backdrop-blur-sm flex gap-3">
       <button onclick="closeModal('new-item-modal')" class="flex-1 py-3 rounded-full border border-surface-container-highest font-bold text-sm">キャンセル</button>
       <button onclick="saveNewItem()" class="flex-1 bg-signature-gradient text-white py-3 rounded-full font-bold text-sm shadow-lg flex items-center justify-center gap-2">
         <span class="material-symbols-outlined text-lg" id="ni-save-btn-icon">playlist_add</span><span id="ni-save-btn-label">出品一覧に追加</span>
@@ -2568,14 +2605,53 @@ function openNewItemModal(draftData) {
 }
 
 function switchItemTab(tab) {
+  const order = ['price','desc','schedule'];
+  const currentIdx = order.indexOf(tab);
   ['price','desc','schedule'].forEach(t => {
-    document.getElementById('item-tab-'+t)?.classList.toggle('hidden', t !== tab);
+    const panel = document.getElementById('item-tab-'+t);
+    panel?.classList.toggle('hidden', t !== tab);
+    if (panel && t === tab) {
+      panel.classList.remove('ni-tab-enter');
+      // reflow でアニメ再実行
+      void panel.offsetWidth;
+      panel.classList.add('ni-tab-enter');
+    }
     const btn = document.getElementById('tab-'+t);
     if (btn) {
-      btn.classList.toggle('border-primary', t===tab); btn.classList.toggle('text-primary', t===tab);
-      btn.classList.toggle('border-transparent', t!==tab); btn.classList.toggle('text-on-surface-variant', t!==tab);
+      btn.classList.toggle('border-primary', t===tab);
+      btn.classList.toggle('bg-primary/10', t===tab);
+      btn.classList.toggle('border-surface-container-highest', t!==tab);
+      btn.classList.toggle('bg-surface-container-low', t!==tab);
+      btn.querySelectorAll('p').forEach((p) => {
+        p.classList.toggle('text-primary', t===tab);
+        p.classList.toggle('text-on-surface-variant', t!==tab);
+      });
     }
   });
+  const hintEl = document.getElementById('ni-step-hint');
+  const prevBtn = document.getElementById('ni-step-prev-btn');
+  const nextBtn = document.getElementById('ni-step-next-btn');
+  if (hintEl) {
+    if (tab === 'price') hintEl.textContent = 'まず価格と利益を決めます';
+    if (tab === 'desc') hintEl.textContent = '次に説明文を整えます';
+    if (tab === 'schedule') hintEl.textContent = '最後に値下げ予定を確認します';
+  }
+  if (prevBtn) {
+    prevBtn.disabled = currentIdx <= 0;
+    prevBtn.classList.toggle('opacity-40', currentIdx <= 0);
+    const prevTab = order[Math.max(0, currentIdx - 1)];
+    prevBtn.onclick = () => switchItemTab(prevTab);
+  }
+  if (nextBtn) {
+    const isLast = currentIdx >= order.length - 1;
+    nextBtn.disabled = isLast;
+    nextBtn.classList.toggle('opacity-40', isLast);
+    if (tab === 'price') nextBtn.textContent = '次へ: 説明文';
+    else if (tab === 'desc') nextBtn.textContent = '次へ: スケジュール';
+    else nextBtn.textContent = '保存へ';
+    const nextTab = order[Math.min(order.length - 1, currentIdx + 1)];
+    nextBtn.onclick = () => switchItemTab(nextTab);
+  }
   if (tab === 'desc') syncNiCategoryFromMain();
   else if (tab === 'price') syncNiCategoryFromDesc();
   if (tab === 'schedule') updateNiScheduleTab();
