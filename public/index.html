@@ -1648,6 +1648,7 @@ let furimoraSupabaseClient = null;
 let furimoraSyncPushTimer = null;
 let furimoraSyncPollTimer = null;
 let furimoraSyncAfterLoginLastTs = 0;
+let furimoraSyncInProgress = false;
 let furimoraLastSyncSignature = '';
 let furimoraWebPushVapidPublicKey = '';
 let furimoraAutoPushDiscountRunning = false;
@@ -1894,10 +1895,39 @@ async function furimoraSyncItemsToCloud(userId) {
     });
   });
   if (!rows.length) return;
-  const { error } = await furimoraSupabaseClient
+  const { data: upserted, error } = await furimoraSupabaseClient
     .from('user_items')
-    .upsert(rows, { onConflict: 'user_id,item_id' });
+    .upsert(rows, { onConflict: 'user_id,item_id' })
+    .select('item_id, updated_at, deleted');
   if (error) throw error;
+  if (Array.isArray(upserted) && upserted.length) {
+    let touched = false;
+    const tombstones = furimoraLoadItemTombstones();
+    for (const row of upserted) {
+      const id = String(row.item_id);
+      if (row.deleted) {
+        if (tombstones[id] !== row.updated_at) {
+          tombstones[id] = row.updated_at;
+          touched = true;
+        }
+        continue;
+      }
+      const item = ITEMS.find((i) => String(i.id) === id);
+      if (item && item.updatedAt !== row.updated_at) {
+        item.updatedAt = row.updated_at;
+        touched = true;
+      }
+      if (Object.prototype.hasOwnProperty.call(tombstones, id)) {
+        delete tombstones[id];
+        touched = true;
+      }
+    }
+    if (touched) {
+      localStorage.setItem('furimora_items', JSON.stringify(ITEMS));
+      furimoraSaveItemTombstones(tombstones);
+      furimoraResetSyncSignature();
+    }
+  }
 }
 async function furimoraPullItemsFromCloud(userId, preferRemote = false) {
   if (!furimoraSupabaseClient || !userId) return;
@@ -1916,7 +1946,7 @@ async function furimoraPullItemsFromCloud(userId, preferRemote = false) {
     const localItemMs = furimoraGetItemUpdatedMs(localItem);
     const localDelMs = new Date(tombstones[id] || '').getTime();
     const localLatest = Math.max(Number.isFinite(localItemMs) ? localItemMs : 0, Number.isFinite(localDelMs) ? localDelMs : 0);
-    const shouldApplyRemote = preferRemote || remoteMs >= localLatest;
+    const shouldApplyRemote = preferRemote ? remoteMs >= localLatest : remoteMs > localLatest;
     if (!shouldApplyRemote) continue;
     if (row.deleted) {
       if (localMap.has(id)) {
@@ -1958,7 +1988,7 @@ function scheduleSyncPush() {
   if (!furimoraSupabaseClient) return;
   clearTimeout(furimoraSyncPushTimer);
   furimoraSyncPushTimer = setTimeout(() => {
-    furimoraPushToCloud().catch((err) => console.error('[sync push]', err));
+    furimoraPushToCloud('auto').catch((err) => console.error('[sync push]', err));
   }, 2800);
 }
 function notifyLocalDataChanged() {
@@ -4906,7 +4936,12 @@ function furimoraReloadAllFromStorage() {
   document.querySelectorAll('.notif-badge').forEach((b) => b.classList.toggle('hidden', NOTIFICATIONS.length === 0));
 }
 
-async function furimoraPushToCloud() {
+async function furimoraPushToCloud(source = 'manual') {
+  // sync_coordinator: furimoraSyncAfterLogin 内部からの push（この時は InProgress なので除外しない）
+  const fromCoordinator = source === 'sync_coordinator';
+  if (!fromCoordinator && source !== 'manual' && furimoraSyncInProgress) {
+    return { ok: false, reason: 'sync_busy' };
+  }
   if (!furimoraSupabaseClient) return { ok: false, reason: 'not_ready' };
   furimoraSyncSetBadge('syncing', '同期中');
   const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
@@ -4948,9 +4983,12 @@ async function furimoraPushToCloud() {
 }
 
 async function furimoraSyncAfterLogin() {
+  if (furimoraSyncInProgress) return;
   const now = Date.now();
   if (now - furimoraSyncAfterLoginLastTs < 900) return;
   furimoraSyncAfterLoginLastTs = now;
+  furimoraSyncInProgress = true;
+  try {
   if (!furimoraSupabaseClient) return;
   const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
   if (!session) return;
@@ -4975,7 +5013,7 @@ async function furimoraSyncAfterLogin() {
     const localPayload = furimoraCollectSyncPayload();
     const hasLocal = localPayload?.keys && Object.keys(localPayload.keys).length > 0;
     if (hasLocal) {
-      await furimoraPushToCloud();
+      await furimoraPushToCloud('sync_coordinator');
       showToast('この端末のデータをクラウドに保存しました');
     } else {
       furimoraSyncSetBadge('idle', '待機中');
@@ -4992,7 +5030,7 @@ async function furimoraSyncAfterLogin() {
     const localPayload = furimoraCollectSyncPayload();
     const hasLocal = localPayload?.keys && Object.keys(localPayload.keys).length > 0;
     if (hasLocal) {
-      await furimoraPushToCloud();
+      await furimoraPushToCloud('sync_coordinator');
       showToast('この端末のデータをクラウドに保存しました');
     } else {
       furimoraSyncSetBadge('idle', '待機中');
@@ -5025,7 +5063,7 @@ async function furimoraSyncAfterLogin() {
     // 重要: リモートが新しくない場合でも、未同期のローカル変更がある時だけ push する
     // （未変更端末からの stale 上書きを防ぐ）
     if (hasUnsyncedLocalChanges()) {
-      await furimoraPushToCloud();
+      await furimoraPushToCloud('sync_coordinator');
     } else {
       try {
         await furimoraPullItemsFromCloud(session.user.id, false);
@@ -5033,6 +5071,13 @@ async function furimoraSyncAfterLogin() {
         console.error('[sync items pull]', e);
       }
       furimoraSyncSetBadge('idle', '待機中');
+    }
+  }
+  } finally {
+    furimoraSyncInProgress = false;
+    // 同期ループ中にタイマー経由の auto push が sync_busy になった場合、終了後に再試行
+    if (hasUnsyncedLocalChanges()) {
+      scheduleSyncPush();
     }
   }
 }
