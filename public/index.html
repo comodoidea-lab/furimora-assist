@@ -4529,6 +4529,13 @@ function furimoraUrlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+function furimoraUint8ArrayToUrlBase64(bytes) {
+  if (!bytes || !bytes.length) return '';
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 async function furimoraEnsureWebPushSubscription(showToastOnSuccess = true) {
   if (!furimoraSupabaseClient) throw new Error('not ready');
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) throw new Error('unsupported');
@@ -4545,6 +4552,13 @@ async function furimoraEnsureWebPushSubscription(showToastOnSuccess = true) {
 
   const reg = await navigator.serviceWorker.ready;
   let subscription = await reg.pushManager.getSubscription();
+  if (subscription?.options?.applicationServerKey) {
+    const oldKey = furimoraUint8ArrayToUrlBase64(new Uint8Array(subscription.options.applicationServerKey));
+    if (oldKey && oldKey !== furimoraWebPushVapidPublicKey) {
+      await subscription.unsubscribe().catch(() => {});
+      subscription = null;
+    }
+  }
   if (!subscription) {
     subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
