@@ -1511,7 +1511,7 @@ tailwind.config = {
     <div class="flex items-start justify-between gap-3 mb-2">
       <div>
         <p class="text-[11px] font-black text-primary uppercase tracking-wider" id="onboarding-step-label">STEP 1 / 3</p>
-        <h3 class="font-headline font-black text-xl leading-tight mt-1" id="onboarding-title">再出品・値下げを自動化</h3>
+        <h3 class="font-headline font-black text-xl leading-tight mt-1" id="onboarding-title">ようこそフリモーラへ</h3>
       </div>
       <button type="button" onclick="furimoraSkipOnboarding()" class="text-xs font-bold text-on-surface-variant hover:text-on-surface">スキップ</button>
     </div>
@@ -1529,8 +1529,8 @@ tailwind.config = {
   <div class="modal-sheet w-full" style="max-width:460px" onclick="event.stopPropagation()">
     <div class="flex items-start justify-between gap-3 mb-2">
       <div>
-        <p class="text-[11px] font-black text-tertiary uppercase tracking-wider" id="coachmark-step-label">GUIDE 1 / 3</p>
-        <h3 class="font-headline font-black text-xl leading-tight mt-1" id="coachmark-title">新規出品から始める</h3>
+        <p class="text-[11px] font-black text-tertiary uppercase tracking-wider" id="coachmark-step-label">操作ガイド 1 / 3</p>
+        <h3 class="font-headline font-black text-xl leading-tight mt-1" id="coachmark-title">操作ガイド: 新規出品</h3>
       </div>
       <button type="button" onclick="furimoraSkipCoachmark()" class="text-xs font-bold text-on-surface-variant hover:text-on-surface">スキップ</button>
     </div>
@@ -1666,16 +1666,16 @@ let furimoraCoachmarkStep = 0;
 let furimoraCoachmarkHighlightedEl = null;
 const FURIMORA_ONBOARDING_STEPS = [
   {
-    title: '再出品・値下げを自動化',
-    body: 'フリモーラは、出品中アイテムの値下げスケジュールと再出品タイミングを一元管理できます。',
+    title: 'ようこそフリモーラへ',
+    body: 'フリモーラは、フリマ運用に必要な管理をひとつにまとめるためのアプリです。',
   },
   {
-    title: '同期と通知で見逃し防止',
-    body: '複数端末で同期し、値下げ・再出品予定をプッシュ通知で受け取れます。通知カテゴリは設定で切り替え可能です。',
+    title: '名前の由来は「フリマ管理を網羅」',
+    body: '「フリマ」と「網羅（モーラ）」を掛け合わせ、出品から管理まで迷わず続けられる体験を目指しています。',
   },
   {
-    title: 'まずは1件登録して開始',
-    body: 'ホームの「新規出品」から1件追加してみましょう。STEP形式の入力で最短で出品準備できます。',
+    title: '再出品の煩わしさを減らす',
+    body: '再出品タイミングを見逃さない通知とタスク化で、手間のかかる再出品ループをラクに回せます。',
   },
 ];
 const FURIMORA_COACHMARK_STEPS = [
@@ -1683,22 +1683,22 @@ const FURIMORA_COACHMARK_STEPS = [
     page: 'home',
     targetId: null,
     targetHint: 'ホーム画面の「新規出品」カード',
-    title: '新規出品から始める',
-    body: 'ホームの「新規出品」カードから、最初の1件を登録してみましょう。',
+    title: '操作ガイド: 新規出品',
+    body: 'まずはホームの「新規出品」カードを開き、最初の1件を登録してみましょう。',
   },
   {
     page: 'settings',
     targetId: 'sync-enable-webpush-btn',
     targetHint: '設定 > クラウド同期 > 「通知を有効化」',
-    title: '通知を有効化',
-    body: '同期カードの「通知を有効化」で、この端末への通知受信をONにします。',
+    title: '操作ガイド: 通知受信をON',
+    body: '設定のクラウド同期カードで「通知を有効化」を押し、この端末で通知を受け取れる状態にします。',
   },
   {
     page: 'settings',
     targetId: 'settings-push-enabled-toggle',
     targetHint: '設定 > 自動化 > 「プッシュ通知」トグル',
-    title: '自動通知の親設定',
-    body: '「プッシュ通知」トグルをONにすると、値下げ・再出品の通知カテゴリ設定が使えます。',
+    title: '操作ガイド: 自動通知の設定',
+    body: '「プッシュ通知」トグルをONにすると、値下げ・再出品それぞれの通知設定を切り替えできます。',
   },
 ];
 
@@ -4905,7 +4905,7 @@ function furimoraRenderCoachmark() {
   const hintEl = document.getElementById('coachmark-target-hint');
   const prevBtn = document.getElementById('coachmark-prev-btn');
   const nextBtn = document.getElementById('coachmark-next-btn');
-  if (stepLabel) stepLabel.textContent = `GUIDE ${idx + 1} / ${total}`;
+  if (stepLabel) stepLabel.textContent = `操作ガイド ${idx + 1} / ${total}`;
   if (titleEl) titleEl.textContent = step.title;
   if (bodyEl) bodyEl.textContent = step.body;
   if (hintEl) hintEl.textContent = `対象: ${step.targetHint || '画面の案内に沿って操作してください'}`;
