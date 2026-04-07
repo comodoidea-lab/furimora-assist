@@ -4937,7 +4937,11 @@ function furimoraReloadAllFromStorage() {
 }
 
 async function furimoraPushToCloud(source = 'manual') {
-  if (source !== 'manual' && furimoraSyncInProgress) return { ok: false, reason: 'sync_busy' };
+  // sync_coordinator: furimoraSyncAfterLogin 内部からの push（この時は InProgress なので除外しない）
+  const fromCoordinator = source === 'sync_coordinator';
+  if (!fromCoordinator && source !== 'manual' && furimoraSyncInProgress) {
+    return { ok: false, reason: 'sync_busy' };
+  }
   if (!furimoraSupabaseClient) return { ok: false, reason: 'not_ready' };
   furimoraSyncSetBadge('syncing', '同期中');
   const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
@@ -5009,7 +5013,7 @@ async function furimoraSyncAfterLogin() {
     const localPayload = furimoraCollectSyncPayload();
     const hasLocal = localPayload?.keys && Object.keys(localPayload.keys).length > 0;
     if (hasLocal) {
-      await furimoraPushToCloud('auto');
+      await furimoraPushToCloud('sync_coordinator');
       showToast('この端末のデータをクラウドに保存しました');
     } else {
       furimoraSyncSetBadge('idle', '待機中');
@@ -5026,7 +5030,7 @@ async function furimoraSyncAfterLogin() {
     const localPayload = furimoraCollectSyncPayload();
     const hasLocal = localPayload?.keys && Object.keys(localPayload.keys).length > 0;
     if (hasLocal) {
-      await furimoraPushToCloud('auto');
+      await furimoraPushToCloud('sync_coordinator');
       showToast('この端末のデータをクラウドに保存しました');
     } else {
       furimoraSyncSetBadge('idle', '待機中');
@@ -5059,7 +5063,7 @@ async function furimoraSyncAfterLogin() {
     // 重要: リモートが新しくない場合でも、未同期のローカル変更がある時だけ push する
     // （未変更端末からの stale 上書きを防ぐ）
     if (hasUnsyncedLocalChanges()) {
-      await furimoraPushToCloud('auto');
+      await furimoraPushToCloud('sync_coordinator');
     } else {
       try {
         await furimoraPullItemsFromCloud(session.user.id, false);
@@ -5071,6 +5075,10 @@ async function furimoraSyncAfterLogin() {
   }
   } finally {
     furimoraSyncInProgress = false;
+    // 同期ループ中にタイマー経由の auto push が sync_busy になった場合、終了後に再試行
+    if (hasUnsyncedLocalChanges()) {
+      scheduleSyncPush();
+    }
   }
 }
 
