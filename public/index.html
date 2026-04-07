@@ -837,6 +837,7 @@ tailwind.config = {
             <button type="button" id="sync-push-btn" class="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs">今すぐ同期（アップロード）</button>
             <button type="button" id="sync-pull-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">クラウドから取得</button>
             <button type="button" id="sync-enable-webpush-btn" class="px-4 py-2 rounded-full bg-tertiary/10 text-tertiary font-bold text-xs">通知を有効化</button>
+            <button type="button" id="sync-local-notify-test-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">端末通知テスト</button>
             <button type="button" id="sync-test-webpush-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">通知テスト</button>
             <button type="button" id="sync-logout-btn" class="min-h-[44px] px-4 py-2.5 rounded-full text-error font-bold text-sm touch-manipulation">ログアウト</button>
           </div>
@@ -1427,6 +1428,7 @@ tailwind.config = {
         <button type="button" id="modal-sync-push-btn" class="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-xs">今すぐ同期（アップロード）</button>
         <button type="button" id="modal-sync-pull-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">クラウドから取得</button>
         <button type="button" id="modal-sync-enable-webpush-btn" class="px-4 py-2 rounded-full bg-tertiary/10 text-tertiary font-bold text-xs">通知を有効化</button>
+        <button type="button" id="modal-sync-local-notify-test-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">端末通知テスト</button>
         <button type="button" id="modal-sync-test-webpush-btn" class="px-4 py-2 rounded-full bg-surface-container font-bold text-xs">通知テスト</button>
         <button type="button" id="modal-sync-logout-btn" class="min-h-[44px] px-4 py-2.5 rounded-full text-error font-bold text-sm touch-manipulation">ログアウト</button>
       </div>
@@ -4599,8 +4601,24 @@ async function furimoraSendWebPushTest() {
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok || !body?.ok) {
-    throw new Error(body?.error || 'push send failed');
+    const msg = body?.error || body?.details || 'push send failed';
+    throw new Error(`HTTP ${res.status}: ${msg}`);
   }
+}
+
+async function furimoraRunLocalNotificationTest() {
+  if (!('Notification' in window)) throw new Error('notification unsupported');
+  const permission = Notification.permission === 'granted'
+    ? 'granted'
+    : await Notification.requestPermission();
+  if (permission !== 'granted') throw new Error('permission denied');
+  const reg = await navigator.serviceWorker.ready;
+  await reg.showNotification('フリモーラ', {
+    body: '端末通知テストです（配信サーバーを使わない）',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url: '/' },
+  });
 }
 
 async function furimoraInitSupabase() {
@@ -4707,6 +4725,15 @@ function furimoraWireSyncButtons() {
       showToast('通知の有効化に失敗しました: ' + (e?.message || e));
     }
   });
+  document.getElementById('sync-local-notify-test-btn')?.addEventListener('click', async () => {
+    try {
+      await furimoraRunLocalNotificationTest();
+      showToast('端末通知テストを表示しました');
+    } catch (e) {
+      console.error(e);
+      showToast('端末通知テスト失敗: ' + (e?.message || e));
+    }
+  });
   document.getElementById('sync-test-webpush-btn')?.addEventListener('click', async () => {
     try {
       await furimoraSendWebPushTest();
@@ -4772,6 +4799,15 @@ function furimoraWireSyncButtons() {
     } catch (e) {
       console.error(e);
       showToast('通知の有効化に失敗しました: ' + (e?.message || e));
+    }
+  });
+  document.getElementById('modal-sync-local-notify-test-btn')?.addEventListener('click', async () => {
+    try {
+      await furimoraRunLocalNotificationTest();
+      showToast('端末通知テストを表示しました');
+    } catch (e) {
+      console.error(e);
+      showToast('端末通知テスト失敗: ' + (e?.message || e));
     }
   });
   document.getElementById('modal-sync-test-webpush-btn')?.addEventListener('click', async () => {
