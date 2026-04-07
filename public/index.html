@@ -856,14 +856,28 @@ tailwind.config = {
             <span class="material-symbols-outlined text-on-surface-variant">schedule</span>
             <div><p class="text-sm font-bold">自動値下げ</p><p class="text-[11px] text-on-surface-variant">24時間ごと</p></div>
           </div>
-          <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+          <div class="toggle-track on" id="settings-auto-discount-toggle"><div class="toggle-thumb"></div></div>
         </div>
         <div class="flex items-center justify-between px-5 py-4">
           <div class="flex items-center gap-3">
             <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
             <div><p class="text-sm font-bold">プッシュ通知</p><p class="text-[11px] text-on-surface-variant">値下げ・再出品アラート</p></div>
           </div>
-          <div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div>
+          <div class="toggle-track on" id="settings-push-enabled-toggle"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4 bg-surface-container-low/40">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">trending_down</span>
+            <div><p class="text-sm font-bold">通知カテゴリ: 値下げ</p><p class="text-[11px] text-on-surface-variant">値下げ予定を自動通知</p></div>
+          </div>
+          <div class="toggle-track on" id="settings-push-discount-toggle"><div class="toggle-thumb"></div></div>
+        </div>
+        <div class="flex items-center justify-between px-5 py-4 bg-surface-container-low/40">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-on-surface-variant">autorenew</span>
+            <div><p class="text-sm font-bold">通知カテゴリ: 再出品</p><p class="text-[11px] text-on-surface-variant">再出品予定を自動通知（準備中）</p></div>
+          </div>
+          <div class="toggle-track on" id="settings-push-relist-toggle"><div class="toggle-thumb"></div></div>
         </div>
         <div class="flex items-center justify-between px-5 py-4">
           <div class="flex items-center gap-3">
@@ -1495,14 +1509,76 @@ const REMOTE_MERCARI_API_ORIGINS = [PRIMARY_WEB_ORIGIN, LEGACY_WEB_ORIGIN];
 const FURIMORA_SYNC_KEYS = [
   'furimora_alerts', 'furimora_activities', 'furimora_queue', 'furimora_schedule', 'furimora_notifications',
   'furimora_stats', 'furimora_items', 'furimora_profile', 'furimora_templates', 'furimora_drafts',
-  'furimora_marketplaces', 'furimora_shipping_methods', 'furimora_suppliers',
+  'furimora_marketplaces', 'furimora_shipping_methods', 'furimora_suppliers', 'furimora_automation_settings',
 ];
 let furimoraSupabaseClient = null;
 let furimoraSyncPushTimer = null;
 let furimoraSyncAfterLoginLastTs = 0;
 let furimoraWebPushVapidPublicKey = '';
+let furimoraAutoPushDiscountRunning = false;
+let furimoraAutoPushRelistRunning = false;
 /** 最後にクラウドの版（updated_at）を取り込んだ／push で確定した時刻（ローカル編集時刻とは別。多段末同期の判定に使う） */
 const FURIMORA_SYNC_LAST_REMOTE_AT = 'furimora_sync_last_remote_at';
+const FURIMORA_PUSH_SENT_ALERT_IDS = 'furimora_push_sent_alert_ids';
+const FURIMORA_AUTOMATION_SETTINGS_KEY = 'furimora_automation_settings';
+const FURIMORA_DEFAULT_AUTOMATION_SETTINGS = {
+  autoDiscountEnabled: true,
+  pushEnabled: true,
+  pushDiscountEnabled: true,
+  pushRelistEnabled: true,
+};
+
+function furimoraGetAutomationSettings() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FURIMORA_AUTOMATION_SETTINGS_KEY) || '{}');
+    return {
+      ...FURIMORA_DEFAULT_AUTOMATION_SETTINGS,
+      ...(parsed && typeof parsed === 'object' ? parsed : {}),
+    };
+  } catch {
+    return { ...FURIMORA_DEFAULT_AUTOMATION_SETTINGS };
+  }
+}
+
+function furimoraSaveAutomationSettings(settings) {
+  const next = {
+    ...FURIMORA_DEFAULT_AUTOMATION_SETTINGS,
+    ...(settings && typeof settings === 'object' ? settings : {}),
+  };
+  localStorage.setItem(FURIMORA_AUTOMATION_SETTINGS_KEY, JSON.stringify(next));
+  notifyLocalDataChanged();
+  return next;
+}
+
+function furimoraToggleTrackSetState(el, enabled) {
+  if (!el) return;
+  el.classList.toggle('on', Boolean(enabled));
+}
+
+function furimoraInitAutomationToggles() {
+  const settings = furimoraGetAutomationSettings();
+  const mapping = [
+    ['settings-auto-discount-toggle', 'autoDiscountEnabled'],
+    ['settings-push-enabled-toggle', 'pushEnabled'],
+    ['settings-push-discount-toggle', 'pushDiscountEnabled'],
+    ['settings-push-relist-toggle', 'pushRelistEnabled'],
+  ];
+
+  mapping.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    furimoraToggleTrackSetState(el, settings[key]);
+    el.onclick = () => {
+      const latest = furimoraGetAutomationSettings();
+      latest[key] = !Boolean(latest[key]);
+      const saved = furimoraSaveAutomationSettings(latest);
+      furimoraToggleTrackSetState(el, saved[key]);
+      if (id === 'settings-push-enabled-toggle' || id === 'settings-push-discount-toggle' || id === 'settings-push-relist-toggle') {
+        showToast(`通知設定を更新しました（値下げ:${saved.pushDiscountEnabled ? 'ON' : 'OFF'} / 再出品:${saved.pushRelistEnabled ? 'ON' : 'OFF'}）`);
+      }
+    };
+  });
+}
 
 function getLastRemoteMergeMs() {
   const s = localStorage.getItem(FURIMORA_SYNC_LAST_REMOTE_AT);
@@ -3234,11 +3310,48 @@ function discountAlertsFromSchedule(limit = 6) {
   return out.slice(0, limit);
 }
 
+function relistAlertsFromSchedule(limit = 6) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const out = [];
+  const mapById = new Map((ITEMS || []).map((i) => [String(i.id), i]));
+  for (const [key, rows] of Object.entries(SCHEDULE_DATA || {})) {
+    const day = parseScheduleDateKey(key);
+    if (!day || day > today || !Array.isArray(rows) || !rows.length) continue;
+    for (const row of rows) {
+      const type = String(row?.type || '');
+      if (!type.includes('再出品')) continue;
+      const itemId = row?.itemId != null ? String(row.itemId) : '';
+      const item = itemId ? mapById.get(itemId) : null;
+      if (item && item.status && item.status !== 'active') continue;
+      out.push({
+        itemId: itemId || null,
+        name: String(row?.name || item?.title || '商品'),
+        dateKey: key,
+        time: String(row?.time || '09:00'),
+        type,
+        icon: 'autorenew',
+      });
+    }
+  }
+  out.sort((a, b) => {
+    const ak = `${a.dateKey} ${a.time}`;
+    const bk = `${b.dateKey} ${b.time}`;
+    if (ak < bk) return -1;
+    if (ak > bk) return 1;
+    return 0;
+  });
+  return out.slice(0, limit);
+}
+
 // ── Render Alerts ──
 function renderAlerts() {
   const el = document.getElementById('alert-list');
   if (!el) return;
   const dueDiscounts = discountAlertsFromSchedule(6);
+  const dueRelists = relistAlertsFromSchedule(6);
+  furimoraAutoPushDueDiscounts(dueDiscounts).catch((e) => console.error(e));
+  furimoraAutoPushDueRelists(dueRelists).catch((e) => console.error(e));
   if (dueDiscounts.length) {
     el.innerHTML = dueDiscounts.map((a) => `
     <div class="bg-error-container/15 p-4 rounded-lg flex gap-3 items-center">
@@ -4609,6 +4722,161 @@ async function furimoraSendWebPushTest() {
   }
 }
 
+function furimoraAlertPushId(alert) {
+  return [
+    String(alert?.itemId || ''),
+    String(alert?.dateKey || ''),
+    String(alert?.time || ''),
+    String(alert?.type || ''),
+  ].join('|');
+}
+
+function furimoraLoadSentAlertPushMap() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FURIMORA_PUSH_SENT_ALERT_IDS) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function furimoraSaveSentAlertPushMap(map) {
+  try {
+    localStorage.setItem(FURIMORA_PUSH_SENT_ALERT_IDS, JSON.stringify(map || {}));
+  } catch (e) {
+    console.warn('[push] save sent map failed', e);
+  }
+}
+
+function furimoraPruneSentAlertPushMap(map) {
+  const next = {};
+  const now = Date.now();
+  const keepMs = 1000 * 60 * 60 * 24 * 21;
+  for (const [id, ts] of Object.entries(map || {})) {
+    const t = Number(ts || 0);
+    if (!Number.isFinite(t)) continue;
+    if ((now - t) <= keepMs) next[id] = t;
+  }
+  return next;
+}
+
+async function furimoraSendWebPushToAllDevices(payload) {
+  if (!furimoraSupabaseClient) throw new Error('not ready');
+  const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
+  if (!session?.user?.id) throw new Error('not signed in');
+
+  const { data, error } = await furimoraSupabaseClient
+    .from('user_push_subscriptions')
+    .select('subscription,endpoint')
+    .eq('user_id', session.user.id)
+    .limit(30);
+  if (error) throw error;
+
+  const subs = (Array.isArray(data) ? data : [])
+    .map((x) => x?.subscription)
+    .filter((x) => x && x.endpoint);
+  if (!subs.length) return { ok: false, sent: 0, reason: 'no subscriptions' };
+
+  const sends = await Promise.allSettled(subs.map((sub) => fetch('/api/push-send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      subscription: sub,
+      title: payload?.title || 'フリモーラ',
+      body: payload?.body || '通知があります',
+      url: payload?.url || '/',
+    }),
+  })));
+
+  let sent = 0;
+  for (const r of sends) {
+    if (r.status !== 'fulfilled') continue;
+    if (r.value.ok) sent += 1;
+  }
+  return { ok: sent > 0, sent };
+}
+
+async function furimoraAutoPushDueDiscounts(dueDiscounts) {
+  if (furimoraAutoPushDiscountRunning) return;
+  if (!Array.isArray(dueDiscounts) || !dueDiscounts.length) return;
+  if (!furimoraSupabaseClient) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const automation = furimoraGetAutomationSettings();
+  if (!automation.autoDiscountEnabled) return;
+  if (!automation.pushEnabled || !automation.pushDiscountEnabled) return;
+
+  const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
+  if (!session) return;
+
+  furimoraAutoPushDiscountRunning = true;
+  try {
+    let sentMap = furimoraPruneSentAlertPushMap(furimoraLoadSentAlertPushMap());
+    const unsent = dueDiscounts.filter((a) => !sentMap[furimoraAlertPushId(a)]);
+    if (!unsent.length) return;
+
+    const first = unsent[0];
+    const firstWhen = `${first.dateKey} ${first.time}`;
+    const body = unsent.length === 1
+      ? `値下げ予定 ${firstWhen}: ${first.name}`
+      : `値下げ予定が ${unsent.length} 件あります（最初: ${firstWhen} ${first.name}）`;
+
+    const result = await furimoraSendWebPushToAllDevices({
+      title: unsent.length === 1 ? '値下げ予定のお知らせ' : `値下げ予定 ${unsent.length} 件`,
+      body,
+      url: '/',
+    });
+    if (!result.ok) return;
+
+    const now = Date.now();
+    for (const a of unsent) sentMap[furimoraAlertPushId(a)] = now;
+    furimoraSaveSentAlertPushMap(sentMap);
+  } catch (e) {
+    console.error('[push auto due discounts]', e);
+  } finally {
+    furimoraAutoPushDiscountRunning = false;
+  }
+}
+
+async function furimoraAutoPushDueRelists(dueRelists) {
+  if (furimoraAutoPushRelistRunning) return;
+  if (!Array.isArray(dueRelists) || !dueRelists.length) return;
+  if (!furimoraSupabaseClient) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const automation = furimoraGetAutomationSettings();
+  if (!automation.pushEnabled || !automation.pushRelistEnabled) return;
+
+  const { data: { session } } = await furimoraSupabaseClient.auth.getSession();
+  if (!session) return;
+
+  furimoraAutoPushRelistRunning = true;
+  try {
+    let sentMap = furimoraPruneSentAlertPushMap(furimoraLoadSentAlertPushMap());
+    const unsent = dueRelists.filter((a) => !sentMap[furimoraAlertPushId(a)]);
+    if (!unsent.length) return;
+
+    const first = unsent[0];
+    const firstWhen = `${first.dateKey} ${first.time}`;
+    const body = unsent.length === 1
+      ? `再出品予定 ${firstWhen}: ${first.name}`
+      : `再出品予定が ${unsent.length} 件あります（最初: ${firstWhen} ${first.name}）`;
+
+    const result = await furimoraSendWebPushToAllDevices({
+      title: unsent.length === 1 ? '再出品予定のお知らせ' : `再出品予定 ${unsent.length} 件`,
+      body,
+      url: '/',
+    });
+    if (!result.ok) return;
+
+    const now = Date.now();
+    for (const a of unsent) sentMap[furimoraAlertPushId(a)] = now;
+    furimoraSaveSentAlertPushMap(sentMap);
+  } catch (e) {
+    console.error('[push auto due relists]', e);
+  } finally {
+    furimoraAutoPushRelistRunning = false;
+  }
+}
+
 async function furimoraRunLocalNotificationTest() {
   if (!('Notification' in window)) throw new Error('notification unsupported');
   const permission = Notification.permission === 'granted'
@@ -4904,6 +5172,7 @@ function enableTapClearNumberInputs(modalId) {
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
   if (isIOSDevice()) document.documentElement.classList.add('ios-touch-lock');
+  furimoraInitAutomationToggles();
   loadCommerceSettings();
   loadStorageData();
   loadStats();
