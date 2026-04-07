@@ -69,7 +69,18 @@ self.addEventListener('fetch', event => {
 
 // Push notifications (future use)
 self.addEventListener('push', event => {
-  const data = event.data?.json() || {};
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json() || {};
+    } catch (e) {
+      try {
+        data = { body: event.data.text() || '新しい通知があります' };
+      } catch (e2) {
+        data = {};
+      }
+    }
+  }
   event.waitUntil(
     self.registration.showNotification(data.title || 'フリモーラ', {
       body: data.body || '新しい通知があります',
